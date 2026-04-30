@@ -1,0 +1,86 @@
+import type { Candidate, CandidateStage, TimelineEntry, Vacancy } from '../types';
+
+export const stageOrder: CandidateStage[] = [
+  'New',
+  'Screening',
+  'Recruiter Interview',
+  'Hiring Manager Interview',
+  'Panel / Final Interview',
+  'Offer',
+  'Hired',
+  'Rejected',
+];
+
+export const vacancies: Vacancy[] = [
+  { id: 'vac-1', title: 'Senior Frontend Engineer', team: 'Product Engineering', owner: 'Dana Levi', status: 'Active' },
+  { id: 'vac-2', title: 'Technical Recruiter', team: 'Talent', owner: 'Maya Cohen', status: 'Active' },
+  { id: 'vac-3', title: 'Product Designer', team: 'Design', owner: 'Noam Katz', status: 'Closing Soon' },
+];
+
+export const candidates: Candidate[] = [
+  {
+    id: 'cand-1', vacancyId: 'vac-1', name: 'Ariel Ben-David', currentStage: 'Screening', source: 'LinkedIn',
+    lastActivityDate: '2026-04-29', nextInterview: '2026-05-02 10:00', score: 78, location: 'Tel Aviv',
+    summary: 'Strong React and TypeScript background, moved quickly after recruiter call.'
+  },
+  {
+    id: 'cand-2', vacancyId: 'vac-1', name: 'Lior Shalev', currentStage: 'Hiring Manager Interview', source: 'Referral',
+    lastActivityDate: '2026-04-30', nextInterview: '2026-05-01 15:00', score: 88, location: 'Haifa',
+    summary: 'Recommended by an engineering manager, strong system ownership examples.'
+  },
+  {
+    id: 'cand-3', vacancyId: 'vac-1', name: 'Tamar Regev', currentStage: 'Offer', source: 'Inbound',
+    lastActivityDate: '2026-04-28', nextInterview: 'Offer review pending', score: 91, location: 'Jerusalem',
+    summary: 'Excellent frontend architecture depth, waiting on compensation alignment.'
+  },
+  {
+    id: 'cand-4', vacancyId: 'vac-1', name: 'Omer Azulay', currentStage: 'Rejected', source: 'Agency',
+    lastActivityDate: '2026-04-24', score: 55, location: 'Remote',
+    summary: 'Good communication, but frontend depth did not match the role needs.'
+  },
+  {
+    id: 'cand-5', vacancyId: 'vac-2', name: 'Yael Hacohen', currentStage: 'New', source: 'LinkedIn',
+    lastActivityDate: '2026-04-30', score: 72, location: 'Tel Aviv',
+    summary: 'Looks promising for recruiter process design and sourcing discipline.'
+  },
+  {
+    id: 'cand-6', vacancyId: 'vac-2', name: 'Ronen Moyal', currentStage: 'Recruiter Interview', source: 'Referral',
+    lastActivityDate: '2026-04-29', nextInterview: '2026-05-03 11:30', score: 80, location: 'Ramat Gan',
+    summary: 'Strong coordination examples and experience managing hiring loops.'
+  },
+  {
+    id: 'cand-7', vacancyId: 'vac-2', name: 'Shani Adler', currentStage: 'Hired', source: 'Previous applicant',
+    lastActivityDate: '2026-04-21', score: 93, location: 'Herzliya',
+    summary: 'Already accepted the role in this sample dataset, useful for milestone coverage.'
+  },
+  {
+    id: 'cand-8', vacancyId: 'vac-3', name: 'Gal Peled', currentStage: 'Panel / Final Interview', source: 'Dribbble',
+    lastActivityDate: '2026-04-30', nextInterview: '2026-05-04 09:00', score: 86, location: 'Tel Aviv',
+    summary: 'Strong product thinking and design systems work, now at final loop stage.'
+  },
+  {
+    id: 'cand-9', vacancyId: 'vac-3', name: 'Neta Baram', currentStage: 'Screening', source: 'Referral',
+    lastActivityDate: '2026-04-27', score: 74, location: 'Netanya',
+    summary: 'Good portfolio fit for B2B SaaS, needs stronger facilitation examples.'
+  },
+  {
+    id: 'cand-10', vacancyId: 'vac-3', name: 'Idan Mor', currentStage: 'New', source: 'Inbound',
+    lastActivityDate: '2026-04-26', score: 68, location: 'Remote',
+    summary: 'Early review candidate with solid craft, no interviews scheduled yet.'
+  },
+];
+
+export const timelineEntries: TimelineEntry[] = [
+  { id: 't1', candidateId: 'cand-1', type: 'communication', title: 'Recruiter outreach reply', date: '2026-04-29', detail: 'Candidate replied within 2 hours and shared portfolio links.' },
+  { id: 't2', candidateId: 'cand-1', type: 'interview', title: 'Intro call booked', date: '2026-04-30', detail: '30 minute screening call scheduled with recruiter.' },
+  { id: 't3', candidateId: 'cand-2', type: 'feedback', title: 'Manager feedback added', date: '2026-04-30', detail: 'Strong ownership signals, continue to live problem-solving interview.' },
+  { id: 't4', candidateId: 'cand-2', type: 'interview', title: 'Hiring manager interview', date: '2026-05-01', detail: 'Focus on frontend architecture and cross-team communication.' },
+  { id: 't5', candidateId: 'cand-3', type: 'communication', title: 'Compensation expectations captured', date: '2026-04-28', detail: 'Candidate expects total package aligned with senior frontend market range.' },
+  { id: 't6', candidateId: 'cand-3', type: 'feedback', title: 'Panel consensus', date: '2026-04-27', detail: 'Clear yes from all interviewers, only package approval remains.' },
+  { id: 't7', candidateId: 'cand-4', type: 'feedback', title: 'Process closed', date: '2026-04-24', detail: 'Rejected after technical interview due to mismatch in role depth.' },
+  { id: 't8', candidateId: 'cand-6', type: 'communication', title: 'Follow-up sent', date: '2026-04-29', detail: 'Sent interview preparation details and loop overview.' },
+  { id: 't9', candidateId: 'cand-7', type: 'feedback', title: 'Offer accepted', date: '2026-04-21', detail: 'Candidate accepted and onboarding handoff completed.' },
+  { id: 't10', candidateId: 'cand-8', type: 'interview', title: 'Final panel booked', date: '2026-05-04', detail: 'Panel includes PM, design lead, and engineering partner.' },
+  { id: 't11', candidateId: 'cand-8', type: 'feedback', title: 'Portfolio review notes', date: '2026-04-30', detail: 'Strong storytelling and systems thinking across case studies.' },
+  { id: 't12', candidateId: 'cand-9', type: 'communication', title: 'Portfolio received', date: '2026-04-27', detail: 'Shared product design work focused on internal tools and dashboards.' }
+];
