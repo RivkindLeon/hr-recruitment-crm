@@ -11,7 +11,13 @@ A public project for exploring a CRM-like system for HR and recruitment teams to
 Recruitment processes often become scattered across spreadsheets, chat messages, ATS tools, and ad hoc notes, making coordination and visibility harder.
 
 ## Current status
-Initial idea / exploration, with a workflow foundation and first app-shell milestone documented.
+Early frontend prototype available, with a workflow foundation and a first app-shell implementation backed by mock recruitment data.
+
+## Local development
+- `npm install`
+- `npm run dev`
+- `npm run build`
+- `npm run lint`
 
 ## Key docs
 - `docs/idea.md`
@@ -19,6 +25,12 @@ Initial idea / exploration, with a workflow foundation and first app-shell miles
 - `docs/roadmap.md`
 - `docs/workflow-foundation.md`
 - `docs/app-shell-milestone.md`
+
+## Implemented prototype slice
+- vacancy selection as the main entry point
+- stage-based candidate pipeline per vacancy
+- candidate detail panel with timeline-style activity
+- mock data for vacancies, candidates, interviews, feedback, and communication history
 
 ## Repository visibility
 This repository is public.
