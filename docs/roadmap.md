@@ -6,6 +6,11 @@
 - keep exploration lightweight
 
 ## Possible next phase
-- define user roles
-- outline candidate and vacancy lifecycle
-- identify minimum workflow for a first prototype
+- turn the workflow foundation into a first app shell
+- draft candidate and vacancy views around the initial pipeline
+- define which fields are required in v0 versus later
+
+## Current foundation captured
+- primary users defined
+- minimum hiring workflow outlined
+- initial pipeline and core entities documented
