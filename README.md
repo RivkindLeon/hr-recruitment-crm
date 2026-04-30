@@ -11,13 +11,14 @@ A public project for exploring a CRM-like system for HR and recruitment teams to
 Recruitment processes often become scattered across spreadsheets, chat messages, ATS tools, and ad hoc notes, making coordination and visibility harder.
 
 ## Current status
-Initial idea / exploration, with a first workflow foundation documented.
+Initial idea / exploration, with a workflow foundation and first app-shell milestone documented.
 
 ## Key docs
 - `docs/idea.md`
 - `docs/scope.md`
 - `docs/roadmap.md`
 - `docs/workflow-foundation.md`
+- `docs/app-shell-milestone.md`
 
 ## Repository visibility
 This repository is public.
