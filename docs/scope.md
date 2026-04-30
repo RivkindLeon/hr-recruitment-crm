@@ -4,9 +4,10 @@
 - initial repository setup
 - lightweight product framing
 - simple documentation structure
+- first app-shell milestone definition
 
 ## Out of scope for now
-- implementation architecture
-- feature prioritization in depth
+- backend implementation
+- authentication and permissions
 - integrations
 - deep operational analysis
