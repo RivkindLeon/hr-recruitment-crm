@@ -63,7 +63,8 @@ p {
 .panel,
 .vacancy-card,
 .candidate-card,
-.timeline-item {
+.timeline-item,
+.stage-movement-card {
   background: rgba(15, 23, 42, 0.82);
   border: 1px solid rgba(148, 163, 184, 0.18);
   border-radius: 16px;
@@ -123,7 +124,9 @@ p {
 .stage-header,
 .timeline-item-top,
 .vacancy-meta,
-.detail-summary {
+.detail-summary,
+.stage-movement-card,
+.stage-movement-actions {
   display: flex;
   justify-content: space-between;
   gap: 12px;
@@ -199,6 +202,35 @@ p {
   top: 24px;
 }
 
+.stage-movement-card {
+  align-items: center;
+  margin-bottom: 16px;
+  padding: 14px;
+}
+
+.stage-movement-actions {
+  flex-wrap: wrap;
+}
+
+.stage-action-button {
+  border: 1px solid rgba(148, 163, 184, 0.18);
+  background: rgba(30, 41, 59, 0.95);
+  color: #e2e8f0;
+  border-radius: 10px;
+  padding: 10px 12px;
+  cursor: pointer;
+}
+
+.stage-action-button.primary {
+  border-color: rgba(56, 189, 248, 0.4);
+  background: rgba(8, 47, 73, 0.95);
+}
+
+.stage-action-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
 .detail-summary {
   flex-wrap: wrap;
   margin-bottom: 16px;
@@ -257,5 +289,10 @@ p {
 
   .pipeline-columns {
     grid-template-columns: 1fr;
+  }
+
+  .stage-movement-card {
+    flex-direction: column;
+    align-items: stretch;
   }
 }
