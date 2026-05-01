@@ -1,15 +1,19 @@
 import { useMemo, useState } from 'react';
-import { candidates, stageOrder, timelineEntries, vacancies } from './data/mockData';
+import { candidates as initialCandidates, stageOrder, timelineEntries, vacancies } from './data/mockData';
 import type { Candidate, CandidateStage } from './types';
 
 const formatDate = (value: string) => value;
 
-const getCandidatesForVacancy = (vacancyId: string) =>
-  candidates.filter((candidate) => candidate.vacancyId === vacancyId);
+const getCandidatesForVacancy = (allCandidates: Candidate[], vacancyId: string) =>
+  allCandidates.filter((candidate) => candidate.vacancyId === vacancyId);
 
 export default function App() {
+  const [candidateRecords, setCandidateRecords] = useState(initialCandidates);
   const [selectedVacancyId, setSelectedVacancyId] = useState(vacancies[0]?.id ?? '');
-  const vacancyCandidates = useMemo(() => getCandidatesForVacancy(selectedVacancyId), [selectedVacancyId]);
+  const vacancyCandidates = useMemo(
+    () => getCandidatesForVacancy(candidateRecords, selectedVacancyId),
+    [candidateRecords, selectedVacancyId],
+  );
   const [selectedCandidateId, setSelectedCandidateId] = useState(vacancyCandidates[0]?.id ?? '');
 
   const selectedVacancy = vacancies.find((vacancy) => vacancy.id === selectedVacancyId) ?? vacancies[0];
@@ -29,11 +33,41 @@ export default function App() {
   }, [vacancyCandidates]);
 
   const selectedTimeline = timelineEntries.filter((entry) => entry.candidateId === selectedCandidate?.id);
+  const selectedCandidateStageIndex = selectedCandidate ? stageOrder.indexOf(selectedCandidate.currentStage) : -1;
 
   const handleVacancySelect = (vacancyId: string) => {
     setSelectedVacancyId(vacancyId);
-    const nextCandidate = getCandidatesForVacancy(vacancyId)[0];
+    const nextCandidate = getCandidatesForVacancy(candidateRecords, vacancyId)[0];
     setSelectedCandidateId(nextCandidate?.id ?? '');
+  };
+
+  const moveCandidateToStage = (candidateId: string, nextStage: CandidateStage) => {
+    setCandidateRecords((currentCandidates) =>
+      currentCandidates.map((candidate) =>
+        candidate.id === candidateId
+          ? {
+              ...candidate,
+              currentStage: nextStage,
+              lastActivityDate: '2026-05-01',
+              nextInterview: nextStage === 'Rejected' || nextStage === 'Hired' ? undefined : candidate.nextInterview,
+            }
+          : candidate,
+      ),
+    );
+  };
+
+  const moveSelectedCandidateBy = (direction: -1 | 1) => {
+    if (!selectedCandidate || selectedCandidateStageIndex === -1) {
+      return;
+    }
+
+    const nextStage = stageOrder[selectedCandidateStageIndex + direction];
+
+    if (!nextStage) {
+      return;
+    }
+
+    moveCandidateToStage(selectedCandidate.id, nextStage);
   };
 
   return (
@@ -43,12 +77,12 @@ export default function App() {
           <p className="eyebrow">First app shell milestone</p>
           <h1>HR Recruitment CRM</h1>
           <p className="page-subtitle">
-            Explore vacancies, review the hiring pipeline, and inspect candidate activity without backend complexity yet.
+            Explore vacancies, review the hiring pipeline, move candidates between stages, and inspect activity without backend complexity yet.
           </p>
         </div>
         <div className="summary-card">
           <span>{vacancies.length} vacancies</span>
-          <span>{candidates.length} candidates</span>
+          <span>{candidateRecords.length} candidates</span>
           <span>{timelineEntries.length} timeline items</span>
         </div>
       </header>
@@ -62,7 +96,7 @@ export default function App() {
 
           <div className="vacancy-list">
             {vacancies.map((vacancy) => {
-              const count = candidates.filter((candidate) => candidate.vacancyId === vacancy.id).length;
+              const count = candidateRecords.filter((candidate) => candidate.vacancyId === vacancy.id).length;
               const isSelected = vacancy.id === selectedVacancyId;
               return (
                 <button
@@ -138,6 +172,31 @@ export default function App() {
               <div className="panel-header">
                 <h2>{selectedCandidate.name}</h2>
                 <p>{selectedCandidate.currentStage}</p>
+              </div>
+
+              <div className="stage-movement-card">
+                <div>
+                  <span className="detail-label">Stage controls</span>
+                  <strong>Move candidate through the pipeline</strong>
+                </div>
+                <div className="stage-movement-actions">
+                  <button
+                    type="button"
+                    className="stage-action-button"
+                    onClick={() => moveSelectedCandidateBy(-1)}
+                    disabled={selectedCandidateStageIndex <= 0}
+                  >
+                    Previous stage
+                  </button>
+                  <button
+                    type="button"
+                    className="stage-action-button primary"
+                    onClick={() => moveSelectedCandidateBy(1)}
+                    disabled={selectedCandidateStageIndex === -1 || selectedCandidateStageIndex >= stageOrder.length - 1}
+                  >
+                    Next stage
+                  </button>
+                </div>
               </div>
 
               <div className="detail-summary">
