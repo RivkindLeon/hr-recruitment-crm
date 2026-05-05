@@ -15,11 +15,14 @@ export default function App() {
     [candidateRecords, selectedVacancyId],
   );
   const [selectedCandidateId, setSelectedCandidateId] = useState(vacancyCandidates[0]?.id ?? '');
+  const [selectedStageDraft, setSelectedStageDraft] = useState<CandidateStage>(vacancyCandidates[0]?.currentStage ?? 'New');
 
   const selectedVacancy = vacancies.find((vacancy) => vacancy.id === selectedVacancyId) ?? vacancies[0];
 
   const selectedCandidate =
     vacancyCandidates.find((candidate) => candidate.id === selectedCandidateId) ?? vacancyCandidates[0];
+
+  const effectiveSelectedStageDraft = selectedCandidate ? selectedStageDraft : stageOrder[0];
 
   const stageBuckets = useMemo(() => {
     const buckets = new Map<CandidateStage, Candidate[]>();
@@ -39,6 +42,7 @@ export default function App() {
     setSelectedVacancyId(vacancyId);
     const nextCandidate = getCandidatesForVacancy(candidateRecords, vacancyId)[0];
     setSelectedCandidateId(nextCandidate?.id ?? '');
+    setSelectedStageDraft(nextCandidate?.currentStage ?? 'New');
   };
 
   const moveCandidateToStage = (candidateId: string, nextStage: CandidateStage) => {
@@ -48,12 +52,13 @@ export default function App() {
           ? {
               ...candidate,
               currentStage: nextStage,
-              lastActivityDate: '2026-05-01',
+              lastActivityDate: '2026-05-05',
               nextInterview: nextStage === 'Rejected' || nextStage === 'Hired' ? undefined : candidate.nextInterview,
             }
           : candidate,
       ),
     );
+    setSelectedStageDraft(nextStage);
   };
 
   const moveSelectedCandidateBy = (direction: -1 | 1) => {
@@ -147,7 +152,10 @@ export default function App() {
                           key={candidate.id}
                           type="button"
                           className={`candidate-card ${selectedCandidate?.id === candidate.id ? 'selected' : ''}`}
-                          onClick={() => setSelectedCandidateId(candidate.id)}
+                          onClick={() => {
+                            setSelectedCandidateId(candidate.id);
+                            setSelectedStageDraft(candidate.currentStage);
+                          }}
                         >
                           <div className="candidate-card-top">
                             <strong>{candidate.name}</strong>
@@ -195,6 +203,29 @@ export default function App() {
                     disabled={selectedCandidateStageIndex === -1 || selectedCandidateStageIndex >= stageOrder.length - 1}
                   >
                     Next stage
+                  </button>
+                </div>
+                <div className="stage-picker-row">
+                  <label className="stage-picker-field">
+                    <span className="detail-label">Set stage directly</span>
+                    <select
+                      value={effectiveSelectedStageDraft}
+                      onChange={(event) => setSelectedStageDraft(event.target.value as CandidateStage)}
+                    >
+                      {stageOrder.map((stage) => (
+                        <option key={stage} value={stage}>
+                          {stage}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                  <button
+                    type="button"
+                    className="stage-action-button"
+                    onClick={() => moveCandidateToStage(selectedCandidate.id, effectiveSelectedStageDraft)}
+                    disabled={effectiveSelectedStageDraft === selectedCandidate.currentStage}
+                  >
+                    Apply stage
                   </button>
                 </div>
               </div>
