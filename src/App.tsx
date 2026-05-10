@@ -1,6 +1,17 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useState, type FormEvent } from 'react';
 import { candidates as initialCandidates, stageOrder, timelineEntries, vacancies } from './data/mockData';
 import type { Candidate, CandidateStage } from './types';
+
+const TODAY = '2026-05-10';
+const defaultCandidateForm = {
+  name: '',
+  source: 'LinkedIn',
+  location: '',
+  score: '70',
+  stage: 'New' as CandidateStage,
+  nextInterview: '',
+  summary: '',
+};
 
 const formatDate = (value: string) => value;
 
@@ -10,6 +21,7 @@ const getCandidatesForVacancy = (allCandidates: Candidate[], vacancyId: string) 
 export default function App() {
   const [candidateRecords, setCandidateRecords] = useState(initialCandidates);
   const [selectedVacancyId, setSelectedVacancyId] = useState(vacancies[0]?.id ?? '');
+  const [candidateDraft, setCandidateDraft] = useState(defaultCandidateForm);
   const vacancyCandidates = useMemo(
     () => getCandidatesForVacancy(candidateRecords, selectedVacancyId),
     [candidateRecords, selectedVacancyId],
@@ -23,6 +35,10 @@ export default function App() {
     vacancyCandidates.find((candidate) => candidate.id === selectedCandidateId) ?? vacancyCandidates[0];
 
   const effectiveSelectedStageDraft = selectedCandidate ? selectedStageDraft : stageOrder[0];
+  const sourceOptions = useMemo(
+    () => Array.from(new Set(candidateRecords.map((candidate) => candidate.source))).sort(),
+    [candidateRecords],
+  );
 
   const stageBuckets = useMemo(() => {
     const buckets = new Map<CandidateStage, Candidate[]>();
@@ -43,6 +59,7 @@ export default function App() {
     const nextCandidate = getCandidatesForVacancy(candidateRecords, vacancyId)[0];
     setSelectedCandidateId(nextCandidate?.id ?? '');
     setSelectedStageDraft(nextCandidate?.currentStage ?? 'New');
+    setCandidateDraft((currentDraft) => ({ ...currentDraft, stage: 'New' }));
   };
 
   const moveCandidateToStage = (candidateId: string, nextStage: CandidateStage) => {
@@ -52,7 +69,7 @@ export default function App() {
           ? {
               ...candidate,
               currentStage: nextStage,
-              lastActivityDate: '2026-05-05',
+              lastActivityDate: TODAY,
               nextInterview: nextStage === 'Rejected' || nextStage === 'Hired' ? undefined : candidate.nextInterview,
             }
           : candidate,
@@ -73,6 +90,32 @@ export default function App() {
     }
 
     moveCandidateToStage(selectedCandidate.id, nextStage);
+  };
+
+  const handleCandidateCreate = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+
+    if (!selectedVacancy || !candidateDraft.name.trim() || !candidateDraft.location.trim() || !candidateDraft.summary.trim()) {
+      return;
+    }
+
+    const newCandidate: Candidate = {
+      id: `cand-${candidateRecords.length + 1}`,
+      vacancyId: selectedVacancy.id,
+      name: candidateDraft.name.trim(),
+      currentStage: candidateDraft.stage,
+      source: candidateDraft.source,
+      lastActivityDate: TODAY,
+      nextInterview: candidateDraft.nextInterview.trim() || undefined,
+      score: Number(candidateDraft.score),
+      location: candidateDraft.location.trim(),
+      summary: candidateDraft.summary.trim(),
+    };
+
+    setCandidateRecords((currentCandidates) => [...currentCandidates, newCandidate]);
+    setSelectedCandidateId(newCandidate.id);
+    setSelectedStageDraft(newCandidate.currentStage);
+    setCandidateDraft(defaultCandidateForm);
   };
 
   return (
@@ -125,6 +168,107 @@ export default function App() {
               );
             })}
           </div>
+
+          <form className="candidate-create-card" onSubmit={handleCandidateCreate}>
+            <div>
+              <span className="detail-label">Add candidate</span>
+              <strong>Create a candidate in the selected vacancy</strong>
+            </div>
+
+            <label className="form-field">
+              <span>Name</span>
+              <input
+                value={candidateDraft.name}
+                onChange={(event) => setCandidateDraft((currentDraft) => ({ ...currentDraft, name: event.target.value }))}
+                placeholder="Candidate name"
+                required
+              />
+            </label>
+
+            <div className="form-field-row">
+              <label className="form-field">
+                <span>Source</span>
+                <select
+                  value={candidateDraft.source}
+                  onChange={(event) => setCandidateDraft((currentDraft) => ({ ...currentDraft, source: event.target.value }))}
+                >
+                  {sourceOptions.map((source) => (
+                    <option key={source} value={source}>
+                      {source}
+                    </option>
+                  ))}
+                </select>
+              </label>
+
+              <label className="form-field">
+                <span>Stage</span>
+                <select
+                  value={candidateDraft.stage}
+                  onChange={(event) =>
+                    setCandidateDraft((currentDraft) => ({ ...currentDraft, stage: event.target.value as CandidateStage }))
+                  }
+                >
+                  {stageOrder.map((stage) => (
+                    <option key={stage} value={stage}>
+                      {stage}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            </div>
+
+            <div className="form-field-row">
+              <label className="form-field">
+                <span>Location</span>
+                <input
+                  value={candidateDraft.location}
+                  onChange={(event) =>
+                    setCandidateDraft((currentDraft) => ({ ...currentDraft, location: event.target.value }))
+                  }
+                  placeholder="Tel Aviv"
+                  required
+                />
+              </label>
+
+              <label className="form-field">
+                <span>Score</span>
+                <input
+                  type="number"
+                  min="0"
+                  max="100"
+                  value={candidateDraft.score}
+                  onChange={(event) => setCandidateDraft((currentDraft) => ({ ...currentDraft, score: event.target.value }))}
+                  required
+                />
+              </label>
+            </div>
+
+            <label className="form-field">
+              <span>Next interview / note</span>
+              <input
+                value={candidateDraft.nextInterview}
+                onChange={(event) =>
+                  setCandidateDraft((currentDraft) => ({ ...currentDraft, nextInterview: event.target.value }))
+                }
+                placeholder="Optional scheduling note"
+              />
+            </label>
+
+            <label className="form-field">
+              <span>Summary</span>
+              <textarea
+                value={candidateDraft.summary}
+                onChange={(event) => setCandidateDraft((currentDraft) => ({ ...currentDraft, summary: event.target.value }))}
+                rows={4}
+                placeholder="Why this candidate belongs in the pipeline"
+                required
+              />
+            </label>
+
+            <button type="submit" className="stage-action-button primary">
+              Create candidate
+            </button>
+          </form>
         </section>
 
         <section className="panel pipeline-panel">

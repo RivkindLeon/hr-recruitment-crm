@@ -31,6 +31,7 @@ Early frontend prototype available, with a workflow foundation and a first app-s
 - stage-based candidate pipeline per vacancy
 - candidate detail panel with timeline-style activity
 - stage controls for step-by-step moves and direct stage reassignment
+- local candidate creation flow with starting stage, score, location, and optional scheduling note
 - mock data for vacancies, candidates, interviews, feedback, and communication history
 
 ## Repository visibility
