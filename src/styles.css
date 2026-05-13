@@ -65,7 +65,8 @@ p {
 .candidate-card,
 .timeline-item,
 .stage-movement-card,
-.candidate-create-card {
+.candidate-create-card,
+.candidate-summary-card {
   background: rgba(15, 23, 42, 0.82);
   border: 1px solid rgba(148, 163, 184, 0.18);
   border-radius: 16px;
@@ -99,7 +100,8 @@ p {
 .vacancy-list,
 .candidate-list,
 .timeline-list,
-.candidate-create-card {
+.candidate-create-card,
+.candidate-edit-form {
   display: flex;
   flex-direction: column;
   gap: 12px;
@@ -206,7 +208,8 @@ p {
 }
 
 .stage-movement-card,
-.candidate-create-card {
+.candidate-create-card,
+.candidate-summary-card {
   align-items: stretch;
   flex-direction: column;
   padding: 14px;
@@ -218,6 +221,10 @@ p {
 
 .candidate-create-card {
   margin-top: 16px;
+}
+
+.candidate-summary-card {
+  margin-bottom: 16px;
 }
 
 .stage-movement-actions,
@@ -303,8 +310,22 @@ p {
   min-width: 120px;
 }
 
+.candidate-summary-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: start;
+  margin-bottom: 12px;
+}
+
 .candidate-summary {
   color: #cbd5e1;
+  margin-bottom: 8px;
+}
+
+.candidate-next-step {
+  color: #94a3b8;
+  margin-bottom: 0;
 }
 
 .timeline-section h3 {

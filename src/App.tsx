@@ -18,6 +18,14 @@ const formatDate = (value: string) => value;
 const getCandidatesForVacancy = (allCandidates: Candidate[], vacancyId: string) =>
   allCandidates.filter((candidate) => candidate.vacancyId === vacancyId);
 
+const getCandidateDraft = (candidate: Candidate | undefined) => ({
+  source: candidate?.source ?? 'LinkedIn',
+  location: candidate?.location ?? '',
+  score: String(candidate?.score ?? 70),
+  nextInterview: candidate?.nextInterview ?? '',
+  summary: candidate?.summary ?? '',
+});
+
 export default function App() {
   const [candidateRecords, setCandidateRecords] = useState(initialCandidates);
   const [selectedVacancyId, setSelectedVacancyId] = useState(vacancies[0]?.id ?? '');
@@ -28,6 +36,8 @@ export default function App() {
   );
   const [selectedCandidateId, setSelectedCandidateId] = useState(vacancyCandidates[0]?.id ?? '');
   const [selectedStageDraft, setSelectedStageDraft] = useState<CandidateStage>(vacancyCandidates[0]?.currentStage ?? 'New');
+  const [isEditingCandidate, setIsEditingCandidate] = useState(false);
+  const [candidateEditDraft, setCandidateEditDraft] = useState(() => getCandidateDraft(vacancyCandidates[0]));
 
   const selectedVacancy = vacancies.find((vacancy) => vacancy.id === selectedVacancyId) ?? vacancies[0];
 
@@ -59,6 +69,8 @@ export default function App() {
     const nextCandidate = getCandidatesForVacancy(candidateRecords, vacancyId)[0];
     setSelectedCandidateId(nextCandidate?.id ?? '');
     setSelectedStageDraft(nextCandidate?.currentStage ?? 'New');
+    setIsEditingCandidate(false);
+    setCandidateEditDraft(getCandidateDraft(nextCandidate));
     setCandidateDraft((currentDraft) => ({ ...currentDraft, stage: 'New' }));
   };
 
@@ -115,7 +127,34 @@ export default function App() {
     setCandidateRecords((currentCandidates) => [...currentCandidates, newCandidate]);
     setSelectedCandidateId(newCandidate.id);
     setSelectedStageDraft(newCandidate.currentStage);
+    setIsEditingCandidate(false);
+    setCandidateEditDraft(getCandidateDraft(newCandidate));
     setCandidateDraft(defaultCandidateForm);
+  };
+
+  const handleCandidateEdit = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+
+    if (!selectedCandidate || !candidateEditDraft.location.trim() || !candidateEditDraft.summary.trim()) {
+      return;
+    }
+
+    setCandidateRecords((currentCandidates) =>
+      currentCandidates.map((candidate) =>
+        candidate.id === selectedCandidate.id
+          ? {
+              ...candidate,
+              source: candidateEditDraft.source,
+              location: candidateEditDraft.location.trim(),
+              score: Number(candidateEditDraft.score),
+              nextInterview: candidateEditDraft.nextInterview.trim() || undefined,
+              summary: candidateEditDraft.summary.trim(),
+              lastActivityDate: TODAY,
+            }
+          : candidate,
+      ),
+    );
+    setIsEditingCandidate(false);
   };
 
   return (
@@ -299,6 +338,8 @@ export default function App() {
                           onClick={() => {
                             setSelectedCandidateId(candidate.id);
                             setSelectedStageDraft(candidate.currentStage);
+                            setIsEditingCandidate(false);
+                            setCandidateEditDraft(getCandidateDraft(candidate));
                           }}
                         >
                           <div className="candidate-card-top">
@@ -393,7 +434,107 @@ export default function App() {
                 </div>
               </div>
 
-              <p className="candidate-summary">{selectedCandidate.summary}</p>
+              <div className="candidate-summary-card">
+                <div className="candidate-summary-header">
+                  <div>
+                    <span className="detail-label">Candidate details</span>
+                    <strong>Update sourcing, score, location, and scheduling notes</strong>
+                  </div>
+                  <button
+                    type="button"
+                    className="stage-action-button"
+                    onClick={() => {
+                      if (isEditingCandidate) {
+                        setCandidateEditDraft(getCandidateDraft(selectedCandidate));
+                      }
+                      setIsEditingCandidate((currentValue) => !currentValue);
+                    }}
+                  >
+                    {isEditingCandidate ? 'Cancel edit' : 'Edit candidate'}
+                  </button>
+                </div>
+
+                {isEditingCandidate ? (
+                  <form className="candidate-edit-form" onSubmit={handleCandidateEdit}>
+                    <div className="form-field-row">
+                      <label className="form-field">
+                        <span>Source</span>
+                        <select
+                          value={candidateEditDraft.source}
+                          onChange={(event) =>
+                            setCandidateEditDraft((currentDraft) => ({ ...currentDraft, source: event.target.value }))
+                          }
+                        >
+                          {sourceOptions.map((source) => (
+                            <option key={source} value={source}>
+                              {source}
+                            </option>
+                          ))}
+                        </select>
+                      </label>
+
+                      <label className="form-field">
+                        <span>Score</span>
+                        <input
+                          type="number"
+                          min="0"
+                          max="100"
+                          value={candidateEditDraft.score}
+                          onChange={(event) =>
+                            setCandidateEditDraft((currentDraft) => ({ ...currentDraft, score: event.target.value }))
+                          }
+                          required
+                        />
+                      </label>
+                    </div>
+
+                    <label className="form-field">
+                      <span>Location</span>
+                      <input
+                        value={candidateEditDraft.location}
+                        onChange={(event) =>
+                          setCandidateEditDraft((currentDraft) => ({ ...currentDraft, location: event.target.value }))
+                        }
+                        required
+                      />
+                    </label>
+
+                    <label className="form-field">
+                      <span>Next interview / note</span>
+                      <input
+                        value={candidateEditDraft.nextInterview}
+                        onChange={(event) =>
+                          setCandidateEditDraft((currentDraft) => ({ ...currentDraft, nextInterview: event.target.value }))
+                        }
+                        placeholder="Optional scheduling note"
+                      />
+                    </label>
+
+                    <label className="form-field">
+                      <span>Summary</span>
+                      <textarea
+                        value={candidateEditDraft.summary}
+                        onChange={(event) =>
+                          setCandidateEditDraft((currentDraft) => ({ ...currentDraft, summary: event.target.value }))
+                        }
+                        rows={4}
+                        required
+                      />
+                    </label>
+
+                    <button type="submit" className="stage-action-button primary">
+                      Save candidate updates
+                    </button>
+                  </form>
+                ) : (
+                  <>
+                    <p className="candidate-summary">{selectedCandidate.summary}</p>
+                    <p className="candidate-next-step">
+                      Next interview / note: {selectedCandidate.nextInterview ?? 'Not scheduled'}
+                    </p>
+                  </>
+                )}
+              </div>
 
               <div className="timeline-section">
                 <h3>Activity timeline</h3>
