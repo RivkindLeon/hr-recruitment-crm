@@ -31,10 +31,12 @@ export interface Candidate {
   summary: string;
 }
 
+export type TimelineEntryType = 'communication' | 'interview' | 'feedback';
+
 export interface TimelineEntry {
   id: string;
   candidateId: string;
-  type: 'communication' | 'interview' | 'feedback';
+  type: TimelineEntryType;
   title: string;
   date: string;
   detail: string;

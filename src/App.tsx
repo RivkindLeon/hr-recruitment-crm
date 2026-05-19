@@ -1,6 +1,6 @@
 import { useMemo, useState, type FormEvent } from 'react';
 import { candidates as initialCandidates, stageOrder, timelineEntries, vacancies } from './data/mockData';
-import type { Candidate, CandidateStage } from './types';
+import type { Candidate, CandidateStage, TimelineEntry, TimelineEntryType } from './types';
 
 const TODAY = '2026-05-10';
 const defaultCandidateForm = {
@@ -11,6 +11,12 @@ const defaultCandidateForm = {
   stage: 'New' as CandidateStage,
   nextInterview: '',
   summary: '',
+};
+const defaultTimelineForm = {
+  type: 'feedback' as TimelineEntryType,
+  title: '',
+  detail: '',
+  date: TODAY,
 };
 
 const formatDate = (value: string) => value;
@@ -28,6 +34,7 @@ const getCandidateDraft = (candidate: Candidate | undefined) => ({
 
 export default function App() {
   const [candidateRecords, setCandidateRecords] = useState(initialCandidates);
+  const [timelineRecords, setTimelineRecords] = useState(timelineEntries);
   const [selectedVacancyId, setSelectedVacancyId] = useState(vacancies[0]?.id ?? '');
   const [candidateDraft, setCandidateDraft] = useState(defaultCandidateForm);
   const vacancyCandidates = useMemo(
@@ -38,6 +45,7 @@ export default function App() {
   const [selectedStageDraft, setSelectedStageDraft] = useState<CandidateStage>(vacancyCandidates[0]?.currentStage ?? 'New');
   const [isEditingCandidate, setIsEditingCandidate] = useState(false);
   const [candidateEditDraft, setCandidateEditDraft] = useState(() => getCandidateDraft(vacancyCandidates[0]));
+  const [timelineDraft, setTimelineDraft] = useState(defaultTimelineForm);
 
   const selectedVacancy = vacancies.find((vacancy) => vacancy.id === selectedVacancyId) ?? vacancies[0];
 
@@ -61,7 +69,7 @@ export default function App() {
     return buckets;
   }, [vacancyCandidates]);
 
-  const selectedTimeline = timelineEntries.filter((entry) => entry.candidateId === selectedCandidate?.id);
+  const selectedTimeline = timelineRecords.filter((entry) => entry.candidateId === selectedCandidate?.id);
   const selectedCandidateStageIndex = selectedCandidate ? stageOrder.indexOf(selectedCandidate.currentStage) : -1;
 
   const handleVacancySelect = (vacancyId: string) => {
@@ -71,6 +79,7 @@ export default function App() {
     setSelectedStageDraft(nextCandidate?.currentStage ?? 'New');
     setIsEditingCandidate(false);
     setCandidateEditDraft(getCandidateDraft(nextCandidate));
+    setTimelineDraft(defaultTimelineForm);
     setCandidateDraft((currentDraft) => ({ ...currentDraft, stage: 'New' }));
   };
 
@@ -129,6 +138,7 @@ export default function App() {
     setSelectedStageDraft(newCandidate.currentStage);
     setIsEditingCandidate(false);
     setCandidateEditDraft(getCandidateDraft(newCandidate));
+    setTimelineDraft(defaultTimelineForm);
     setCandidateDraft(defaultCandidateForm);
   };
 
@@ -157,6 +167,37 @@ export default function App() {
     setIsEditingCandidate(false);
   };
 
+  const handleTimelineCreate = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+
+    if (!selectedCandidate || !timelineDraft.title.trim() || !timelineDraft.detail.trim() || !timelineDraft.date.trim()) {
+      return;
+    }
+
+    const entryDate = timelineDraft.date.trim();
+    const newTimelineEntry: TimelineEntry = {
+      id: `t${timelineRecords.length + 1}`,
+      candidateId: selectedCandidate.id,
+      type: timelineDraft.type,
+      title: timelineDraft.title.trim(),
+      detail: timelineDraft.detail.trim(),
+      date: entryDate,
+    };
+
+    setTimelineRecords((currentEntries) => [newTimelineEntry, ...currentEntries]);
+    setCandidateRecords((currentCandidates) =>
+      currentCandidates.map((candidate) =>
+        candidate.id === selectedCandidate.id
+          ? {
+              ...candidate,
+              lastActivityDate: entryDate,
+            }
+          : candidate,
+      ),
+    );
+    setTimelineDraft(defaultTimelineForm);
+  };
+
   return (
     <div className="app-shell">
       <header className="page-header">
@@ -164,13 +205,13 @@ export default function App() {
           <p className="eyebrow">First app shell milestone</p>
           <h1>HR Recruitment CRM</h1>
           <p className="page-subtitle">
-            Explore vacancies, review the hiring pipeline, move candidates between stages, and inspect activity without backend complexity yet.
+            Explore vacancies, review the hiring pipeline, move candidates between stages, and capture timeline updates without backend complexity yet.
           </p>
         </div>
         <div className="summary-card">
           <span>{vacancies.length} vacancies</span>
           <span>{candidateRecords.length} candidates</span>
-          <span>{timelineEntries.length} timeline items</span>
+          <span>{timelineRecords.length} timeline items</span>
         </div>
       </header>
 
@@ -340,6 +381,7 @@ export default function App() {
                             setSelectedStageDraft(candidate.currentStage);
                             setIsEditingCandidate(false);
                             setCandidateEditDraft(getCandidateDraft(candidate));
+                            setTimelineDraft(defaultTimelineForm);
                           }}
                         >
                           <div className="candidate-card-top">
@@ -537,7 +579,64 @@ export default function App() {
               </div>
 
               <div className="timeline-section">
-                <h3>Activity timeline</h3>
+                <div className="timeline-section-header">
+                  <h3>Activity timeline</h3>
+                  <p>Add a feedback, interview, or communication note to keep the loop current.</p>
+                </div>
+
+                <form className="timeline-create-card" onSubmit={handleTimelineCreate}>
+                  <div className="form-field-row">
+                    <label className="form-field">
+                      <span>Type</span>
+                      <select
+                        value={timelineDraft.type}
+                        onChange={(event) =>
+                          setTimelineDraft((currentDraft) => ({ ...currentDraft, type: event.target.value as TimelineEntryType }))
+                        }
+                      >
+                        <option value="feedback">Feedback</option>
+                        <option value="interview">Interview</option>
+                        <option value="communication">Communication</option>
+                      </select>
+                    </label>
+
+                    <label className="form-field">
+                      <span>Date</span>
+                      <input
+                        value={timelineDraft.date}
+                        onChange={(event) => setTimelineDraft((currentDraft) => ({ ...currentDraft, date: event.target.value }))}
+                        placeholder="2026-05-10"
+                        required
+                      />
+                    </label>
+                  </div>
+
+                  <label className="form-field">
+                    <span>Title</span>
+                    <input
+                      value={timelineDraft.title}
+                      onChange={(event) => setTimelineDraft((currentDraft) => ({ ...currentDraft, title: event.target.value }))}
+                      placeholder="Manager debrief added"
+                      required
+                    />
+                  </label>
+
+                  <label className="form-field">
+                    <span>Detail</span>
+                    <textarea
+                      value={timelineDraft.detail}
+                      onChange={(event) => setTimelineDraft((currentDraft) => ({ ...currentDraft, detail: event.target.value }))}
+                      rows={3}
+                      placeholder="Capture the key takeaway or next action"
+                      required
+                    />
+                  </label>
+
+                  <button type="submit" className="stage-action-button primary">
+                    Add timeline note
+                  </button>
+                </form>
+
                 <div className="timeline-list">
                   {selectedTimeline.map((entry) => (
                     <article key={entry.id} className="timeline-item">
