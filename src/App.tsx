@@ -46,6 +46,9 @@ export default function App() {
   const [isEditingCandidate, setIsEditingCandidate] = useState(false);
   const [candidateEditDraft, setCandidateEditDraft] = useState(() => getCandidateDraft(vacancyCandidates[0]));
   const [timelineDraft, setTimelineDraft] = useState(defaultTimelineForm);
+  const [editingTimelineId, setEditingTimelineId] = useState<string | null>(null);
+  const [timelineEditDraft, setTimelineEditDraft] = useState(defaultTimelineForm);
+  const [timelineFilter, setTimelineFilter] = useState<TimelineEntryType | 'all'>('all');
 
   const selectedVacancy = vacancies.find((vacancy) => vacancy.id === selectedVacancyId) ?? vacancies[0];
 
@@ -69,7 +72,11 @@ export default function App() {
     return buckets;
   }, [vacancyCandidates]);
 
-  const selectedTimeline = timelineRecords.filter((entry) => entry.candidateId === selectedCandidate?.id);
+  const selectedTimeline = useMemo(() => {
+    const candidateTimeline = timelineRecords.filter((entry) => entry.candidateId === selectedCandidate?.id);
+    if (timelineFilter === 'all') return candidateTimeline;
+    return candidateTimeline.filter((entry) => entry.type === timelineFilter);
+  }, [timelineRecords, selectedCandidate?.id, timelineFilter]);
   const selectedCandidateStageIndex = selectedCandidate ? stageOrder.indexOf(selectedCandidate.currentStage) : -1;
 
   const handleVacancySelect = (vacancyId: string) => {
@@ -176,7 +183,7 @@ export default function App() {
 
     const entryDate = timelineDraft.date.trim();
     const newTimelineEntry: TimelineEntry = {
-      id: `t${timelineRecords.length + 1}`,
+      id: `t${Date.now()}`,
       candidateId: selectedCandidate.id,
       type: timelineDraft.type,
       title: timelineDraft.title.trim(),
@@ -196,6 +203,29 @@ export default function App() {
       ),
     );
     setTimelineDraft(defaultTimelineForm);
+  };
+
+  const handleTimelineEdit = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+
+    if (!editingTimelineId || !timelineEditDraft.title.trim() || !timelineEditDraft.detail.trim()) {
+      return;
+    }
+
+    setTimelineRecords((currentEntries) =>
+      currentEntries.map((entry) =>
+        entry.id === editingTimelineId
+          ? {
+              ...entry,
+              type: timelineEditDraft.type,
+              title: timelineEditDraft.title.trim(),
+              detail: timelineEditDraft.detail.trim(),
+              date: timelineEditDraft.date.trim(),
+            }
+          : entry,
+      ),
+    );
+    setEditingTimelineId(null);
   };
 
   return (
@@ -581,73 +611,207 @@ export default function App() {
               <div className="timeline-section">
                 <div className="timeline-section-header">
                   <h3>Activity timeline</h3>
-                  <p>Add a feedback, interview, or communication note to keep the loop current.</p>
+                  <p>Keep the loop current with updates.</p>
                 </div>
 
-                <form className="timeline-create-card" onSubmit={handleTimelineCreate}>
-                  <div className="form-field-row">
-                    <label className="form-field">
-                      <span>Type</span>
-                      <select
-                        value={timelineDraft.type}
-                        onChange={(event) =>
-                          setTimelineDraft((currentDraft) => ({ ...currentDraft, type: event.target.value as TimelineEntryType }))
-                        }
+                <div className="timeline-controls">
+                  <div className="timeline-filters">
+                    <button
+                      type="button"
+                      className={`filter-chip ${timelineFilter === 'all' ? 'active' : ''}`}
+                      onClick={() => setTimelineFilter('all')}
+                    >
+                      All
+                    </button>
+                    {(['feedback', 'interview', 'communication'] as const).map((type) => (
+                      <button
+                        key={type}
+                        type="button"
+                        className={`filter-chip ${timelineFilter === type ? 'active' : ''}`}
+                        onClick={() => setTimelineFilter(type)}
                       >
-                        <option value="feedback">Feedback</option>
-                        <option value="interview">Interview</option>
-                        <option value="communication">Communication</option>
-                      </select>
-                    </label>
+                        {type}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {!editingTimelineId && (
+                  <form className="timeline-create-card" onSubmit={handleTimelineCreate}>
+                    <div className="form-field-row">
+                      <label className="form-field">
+                        <span>Type</span>
+                        <select
+                          value={timelineDraft.type}
+                          onChange={(event) =>
+                            setTimelineDraft((currentDraft) => ({
+                              ...currentDraft,
+                              type: event.target.value as TimelineEntryType,
+                            }))
+                          }
+                        >
+                          <option value="feedback">Feedback</option>
+                          <option value="interview">Interview</option>
+                          <option value="communication">Communication</option>
+                        </select>
+                      </label>
+
+                      <label className="form-field">
+                        <span>Date</span>
+                        <input
+                          value={timelineDraft.date}
+                          onChange={(event) =>
+                            setTimelineDraft((currentDraft) => ({ ...currentDraft, date: event.target.value }))
+                          }
+                          required
+                        />
+                      </label>
+                    </div>
 
                     <label className="form-field">
-                      <span>Date</span>
+                      <span>Title</span>
                       <input
-                        value={timelineDraft.date}
-                        onChange={(event) => setTimelineDraft((currentDraft) => ({ ...currentDraft, date: event.target.value }))}
-                        placeholder="2026-05-10"
+                        value={timelineDraft.title}
+                        onChange={(event) =>
+                          setTimelineDraft((currentDraft) => ({ ...currentDraft, title: event.target.value }))
+                        }
+                        placeholder="Manager debrief added"
                         required
                       />
                     </label>
-                  </div>
 
-                  <label className="form-field">
-                    <span>Title</span>
-                    <input
-                      value={timelineDraft.title}
-                      onChange={(event) => setTimelineDraft((currentDraft) => ({ ...currentDraft, title: event.target.value }))}
-                      placeholder="Manager debrief added"
-                      required
-                    />
-                  </label>
+                    <label className="form-field">
+                      <span>Detail</span>
+                      <textarea
+                        value={timelineDraft.detail}
+                        onChange={(event) =>
+                          setTimelineDraft((currentDraft) => ({ ...currentDraft, detail: event.target.value }))
+                        }
+                        rows={3}
+                        placeholder="Capture the key takeaway"
+                        required
+                      />
+                    </label>
 
-                  <label className="form-field">
-                    <span>Detail</span>
-                    <textarea
-                      value={timelineDraft.detail}
-                      onChange={(event) => setTimelineDraft((currentDraft) => ({ ...currentDraft, detail: event.target.value }))}
-                      rows={3}
-                      placeholder="Capture the key takeaway or next action"
-                      required
-                    />
-                  </label>
-
-                  <button type="submit" className="stage-action-button primary">
-                    Add timeline note
-                  </button>
-                </form>
+                    <button type="submit" className="stage-action-button primary">
+                      Add timeline note
+                    </button>
+                  </form>
+                )}
 
                 <div className="timeline-list">
-                  {selectedTimeline.map((entry) => (
-                    <article key={entry.id} className="timeline-item">
-                      <div className="timeline-item-top">
-                        <span className={`timeline-type timeline-${entry.type}`}>{entry.type}</span>
-                        <span>{entry.date}</span>
-                      </div>
-                      <strong>{entry.title}</strong>
-                      <p>{entry.detail}</p>
-                    </article>
-                  ))}
+                  {selectedTimeline.length === 0 ? (
+                    <p className="empty-state">No timeline entries match the filter.</p>
+                  ) : (
+                    selectedTimeline.map((entry) => (
+                      <article key={entry.id} className="timeline-item">
+                        {editingTimelineId === entry.id ? (
+                          <form className="timeline-edit-form" onSubmit={handleTimelineEdit}>
+                            <div className="form-field-row">
+                              <label className="form-field">
+                                <span>Type</span>
+                                <select
+                                  value={timelineEditDraft.type}
+                                  onChange={(event) =>
+                                    setTimelineEditDraft((currentDraft) => ({
+                                      ...currentDraft,
+                                      type: event.target.value as TimelineEntryType,
+                                    }))
+                                  }
+                                >
+                                  <option value="feedback">Feedback</option>
+                                  <option value="interview">Interview</option>
+                                  <option value="communication">Communication</option>
+                                </select>
+                              </label>
+
+                              <label className="form-field">
+                                <span>Date</span>
+                                <input
+                                  value={timelineEditDraft.date}
+                                  onChange={(event) =>
+                                    setTimelineEditDraft((currentDraft) => ({
+                                      ...currentDraft,
+                                      date: event.target.value,
+                                    }))
+                                  }
+                                  required
+                                />
+                              </label>
+                            </div>
+
+                            <label className="form-field">
+                              <span>Title</span>
+                              <input
+                                value={timelineEditDraft.title}
+                                onChange={(event) =>
+                                  setTimelineEditDraft((currentDraft) => ({
+                                    ...currentDraft,
+                                    title: event.target.value,
+                                  }))
+                                }
+                                required
+                              />
+                            </label>
+
+                            <label className="form-field">
+                              <span>Detail</span>
+                              <textarea
+                                value={timelineEditDraft.detail}
+                                onChange={(event) =>
+                                  setTimelineEditDraft((currentDraft) => ({
+                                    ...currentDraft,
+                                    detail: event.target.value,
+                                  }))
+                                }
+                                rows={3}
+                                required
+                              />
+                            </label>
+
+                            <div className="form-field-row">
+                              <button type="submit" className="stage-action-button primary">
+                                Save
+                              </button>
+                              <button
+                                type="button"
+                                className="stage-action-button"
+                                onClick={() => setEditingTimelineId(null)}
+                              >
+                                Cancel
+                              </button>
+                            </div>
+                          </form>
+                        ) : (
+                          <>
+                            <div className="timeline-item-top">
+                              <span className={`timeline-type timeline-${entry.type}`}>{entry.type}</span>
+                              <div className="timeline-meta">
+                                <span>{entry.date}</span>
+                                <button
+                                  type="button"
+                                  className="text-action"
+                                  onClick={() => {
+                                    setEditingTimelineId(entry.id);
+                                    setTimelineEditDraft({
+                                      type: entry.type,
+                                      title: entry.title,
+                                      detail: entry.detail,
+                                      date: entry.date,
+                                    });
+                                  }}
+                                >
+                                  Edit
+                                </button>
+                              </div>
+                            </div>
+                            <strong>{entry.title}</strong>
+                            <p>{entry.detail}</p>
+                          </>
+                        )}
+                      </article>
+                    ))
+                  )}
                 </div>
               </div>
             </>
