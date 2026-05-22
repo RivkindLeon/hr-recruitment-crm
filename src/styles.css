@@ -328,6 +328,55 @@ p {
   flex-direction: column;
 }
 
+.timeline-controls {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.timeline-filters {
+  display: flex;
+  gap: 8px;
+}
+
+.filter-chip {
+  padding: 4px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(148, 163, 184, 0.24);
+  background: rgba(30, 41, 59, 0.5);
+  color: #94a3b8;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.filter-chip.active {
+  background: rgba(56, 189, 248, 0.16);
+  border-color: #38bdf8;
+  color: #38bdf8;
+}
+
+.text-action {
+  background: none;
+  border: none;
+  color: #38bdf8;
+  padding: 0;
+  cursor: pointer;
+  font-size: 13px;
+}
+
+.timeline-meta {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.timeline-edit-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
 .candidate-summary {
   color: #cbd5e1;
   margin-bottom: 8px;
