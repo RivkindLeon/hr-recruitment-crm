@@ -1,6 +1,6 @@
 import { useMemo, useState, type FormEvent } from 'react';
-import { candidates as initialCandidates, stageOrder, timelineEntries, vacancies } from './data/mockData';
-import type { Candidate, CandidateStage, TimelineEntry, TimelineEntryType } from './types';
+import { candidates as initialCandidates, stageOrder, timelineEntries, vacancies as initialVacancies } from './data/mockData';
+import type { Candidate, CandidateStage, TimelineEntry, TimelineEntryType, VacancyStatus } from './types';
 
 const TODAY = '2026-05-10';
 const defaultCandidateForm = {
@@ -32,10 +32,18 @@ const getCandidateDraft = (candidate: Candidate | undefined) => ({
   summary: candidate?.summary ?? '',
 });
 
+const getVacancyDraft = (vacancy: (typeof initialVacancies)[number] | undefined) => ({
+  title: vacancy?.title ?? '',
+  team: vacancy?.team ?? '',
+  owner: vacancy?.owner ?? '',
+  status: vacancy?.status ?? ('Active' as VacancyStatus),
+});
+
 export default function App() {
+  const [vacancyRecords, setVacancyRecords] = useState(initialVacancies);
   const [candidateRecords, setCandidateRecords] = useState(initialCandidates);
   const [timelineRecords, setTimelineRecords] = useState(timelineEntries);
-  const [selectedVacancyId, setSelectedVacancyId] = useState(vacancies[0]?.id ?? '');
+  const [selectedVacancyId, setSelectedVacancyId] = useState(initialVacancies[0]?.id ?? '');
   const [candidateDraft, setCandidateDraft] = useState(defaultCandidateForm);
   const vacancyCandidates = useMemo(
     () => getCandidatesForVacancy(candidateRecords, selectedVacancyId),
@@ -49,8 +57,10 @@ export default function App() {
   const [editingTimelineId, setEditingTimelineId] = useState<string | null>(null);
   const [timelineEditDraft, setTimelineEditDraft] = useState(defaultTimelineForm);
   const [timelineFilter, setTimelineFilter] = useState<TimelineEntryType | 'all'>('all');
+  const [isEditingVacancy, setIsEditingVacancy] = useState(false);
+  const [vacancyEditDraft, setVacancyEditDraft] = useState(() => getVacancyDraft(initialVacancies[0]));
 
-  const selectedVacancy = vacancies.find((vacancy) => vacancy.id === selectedVacancyId) ?? vacancies[0];
+  const selectedVacancy = vacancyRecords.find((vacancy) => vacancy.id === selectedVacancyId) ?? vacancyRecords[0];
 
   const selectedCandidate =
     vacancyCandidates.find((candidate) => candidate.id === selectedCandidateId) ?? vacancyCandidates[0];
@@ -82,10 +92,13 @@ export default function App() {
   const handleVacancySelect = (vacancyId: string) => {
     setSelectedVacancyId(vacancyId);
     const nextCandidate = getCandidatesForVacancy(candidateRecords, vacancyId)[0];
+    const nextVacancy = vacancyRecords.find((vacancy) => vacancy.id === vacancyId);
     setSelectedCandidateId(nextCandidate?.id ?? '');
     setSelectedStageDraft(nextCandidate?.currentStage ?? 'New');
     setIsEditingCandidate(false);
     setCandidateEditDraft(getCandidateDraft(nextCandidate));
+    setIsEditingVacancy(false);
+    setVacancyEditDraft(getVacancyDraft(nextVacancy));
     setTimelineDraft(defaultTimelineForm);
     setCandidateDraft((currentDraft) => ({ ...currentDraft, stage: 'New' }));
   };
@@ -174,6 +187,29 @@ export default function App() {
     setIsEditingCandidate(false);
   };
 
+  const handleVacancyEdit = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+
+    if (!selectedVacancy || !vacancyEditDraft.title.trim() || !vacancyEditDraft.team.trim() || !vacancyEditDraft.owner.trim()) {
+      return;
+    }
+
+    setVacancyRecords((currentVacancies) =>
+      currentVacancies.map((vacancy) =>
+        vacancy.id === selectedVacancy.id
+          ? {
+              ...vacancy,
+              title: vacancyEditDraft.title.trim(),
+              team: vacancyEditDraft.team.trim(),
+              owner: vacancyEditDraft.owner.trim(),
+              status: vacancyEditDraft.status,
+            }
+          : vacancy,
+      ),
+    );
+    setIsEditingVacancy(false);
+  };
+
   const handleTimelineCreate = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
@@ -235,11 +271,11 @@ export default function App() {
           <p className="eyebrow">First app shell milestone</p>
           <h1>HR Recruitment CRM</h1>
           <p className="page-subtitle">
-            Explore vacancies, review the hiring pipeline, move candidates between stages, and capture timeline updates without backend complexity yet.
+            Explore vacancies, review the hiring pipeline, update opening details, move candidates between stages, and capture timeline updates without backend complexity yet.
           </p>
         </div>
         <div className="summary-card">
-          <span>{vacancies.length} vacancies</span>
+          <span>{vacancyRecords.length} vacancies</span>
           <span>{candidateRecords.length} candidates</span>
           <span>{timelineRecords.length} timeline items</span>
         </div>
@@ -253,7 +289,7 @@ export default function App() {
           </div>
 
           <div className="vacancy-list">
-            {vacancies.map((vacancy) => {
+            {vacancyRecords.map((vacancy) => {
               const count = candidateRecords.filter((candidate) => candidate.vacancyId === vacancy.id).length;
               const isSelected = vacancy.id === selectedVacancyId;
               return (
@@ -387,6 +423,16 @@ export default function App() {
             <p>{selectedVacancy.team} pipeline grouped by stage.</p>
           </div>
 
+          <div className="vacancy-summary-banner">
+            <div>
+              <span className="detail-label">Selected vacancy</span>
+              <strong>
+                {selectedVacancy.owner} · {selectedVacancy.status}
+              </strong>
+            </div>
+            <span>{vacancyCandidates.length} active candidate records</span>
+          </div>
+
           <div className="pipeline-columns">
             {stageOrder.map((stage) => {
               const stageCandidates = stageBuckets.get(stage) ?? [];
@@ -504,6 +550,108 @@ export default function App() {
                   <span className="detail-label">Score</span>
                   <strong>{selectedCandidate.score}</strong>
                 </div>
+              </div>
+
+              <div className="candidate-summary-card">
+                <div className="candidate-summary-header">
+                  <div>
+                    <span className="detail-label">Vacancy details</span>
+                    <strong>Adjust title, owner, team, or status without leaving the hiring view</strong>
+                  </div>
+                  <button
+                    type="button"
+                    className="stage-action-button"
+                    onClick={() => {
+                      if (isEditingVacancy) {
+                        setVacancyEditDraft(getVacancyDraft(selectedVacancy));
+                      }
+                      setIsEditingVacancy((currentValue) => !currentValue);
+                    }}
+                  >
+                    {isEditingVacancy ? 'Cancel edit' : 'Edit vacancy'}
+                  </button>
+                </div>
+
+                {isEditingVacancy ? (
+                  <form className="candidate-edit-form" onSubmit={handleVacancyEdit}>
+                    <label className="form-field">
+                      <span>Title</span>
+                      <input
+                        value={vacancyEditDraft.title}
+                        onChange={(event) =>
+                          setVacancyEditDraft((currentDraft) => ({ ...currentDraft, title: event.target.value }))
+                        }
+                        required
+                      />
+                    </label>
+
+                    <div className="form-field-row">
+                      <label className="form-field">
+                        <span>Team</span>
+                        <input
+                          value={vacancyEditDraft.team}
+                          onChange={(event) =>
+                            setVacancyEditDraft((currentDraft) => ({ ...currentDraft, team: event.target.value }))
+                          }
+                          required
+                        />
+                      </label>
+
+                      <label className="form-field">
+                        <span>Owner</span>
+                        <input
+                          value={vacancyEditDraft.owner}
+                          onChange={(event) =>
+                            setVacancyEditDraft((currentDraft) => ({ ...currentDraft, owner: event.target.value }))
+                          }
+                          required
+                        />
+                      </label>
+                    </div>
+
+                    <label className="form-field">
+                      <span>Status</span>
+                      <select
+                        value={vacancyEditDraft.status}
+                        onChange={(event) =>
+                          setVacancyEditDraft((currentDraft) => ({
+                            ...currentDraft,
+                            status: event.target.value as VacancyStatus,
+                          }))
+                        }
+                      >
+                        {(['Active', 'Paused', 'Closing Soon'] as const).map((status) => (
+                          <option key={status} value={status}>
+                            {status}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+
+                    <button type="submit" className="stage-action-button primary">
+                      Save vacancy updates
+                    </button>
+                  </form>
+                ) : (
+                  <div className="detail-summary vacancy-detail-summary">
+                    <div>
+                      <span className="detail-label">Team</span>
+                      <strong>{selectedVacancy.team}</strong>
+                    </div>
+                    <div>
+                      <span className="detail-label">Owner</span>
+                      <strong>{selectedVacancy.owner}</strong>
+                    </div>
+                    <div>
+                      <span className="detail-label">Status</span>
+                      <strong>{selectedVacancy.status}</strong>
+                    </div>
+                    <div>
+                      <span className="detail-label">Pipeline size</span>
+                      <strong>{vacancyCandidates.length} candidates</strong>
+                    </div>
+                  </div>
+                )}
               </div>
 
               <div className="candidate-summary-card">
