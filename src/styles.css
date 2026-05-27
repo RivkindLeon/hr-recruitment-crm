@@ -67,7 +67,8 @@ p {
 .stage-movement-card,
 .candidate-create-card,
 .candidate-summary-card,
-.timeline-create-card {
+.timeline-create-card,
+.vacancy-filter-card {
   background: rgba(15, 23, 42, 0.82);
   border: 1px solid rgba(148, 163, 184, 0.18);
   border-radius: 16px;
@@ -104,7 +105,8 @@ p {
 .timeline-list,
 .candidate-create-card,
 .candidate-edit-form,
-.timeline-create-card {
+.timeline-create-card,
+.vacancy-filter-card {
   display: flex;
   flex-direction: column;
   gap: 12px;
@@ -241,8 +243,13 @@ p {
   margin-bottom: 16px;
 }
 
+.vacancy-filter-card,
 .candidate-create-card {
   margin-top: 16px;
+}
+
+.vacancy-filter-card {
+  padding: 14px;
 }
 
 .candidate-summary-card,
@@ -362,6 +369,10 @@ p {
   gap: 8px;
 }
 
+.vacancy-filters {
+  flex-wrap: wrap;
+}
+
 .filter-chip {
   padding: 4px 12px;
   border-radius: 999px;
@@ -376,6 +387,12 @@ p {
   background: rgba(56, 189, 248, 0.16);
   border-color: #38bdf8;
   color: #38bdf8;
+}
+
+.filter-count {
+  margin-left: 6px;
+  color: inherit;
+  opacity: 0.8;
 }
 
 .text-action {
