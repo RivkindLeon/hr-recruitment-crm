@@ -1,4 +1,4 @@
-import { useMemo, useState, type FormEvent } from 'react';
+import { useEffect, useMemo, useState, type FormEvent } from 'react';
 import { candidates as initialCandidates, stageOrder, timelineEntries, vacancies as initialVacancies } from './data/mockData';
 import type { Candidate, CandidateStage, TimelineEntry, TimelineEntryType, VacancyStatus } from './types';
 
@@ -32,6 +32,9 @@ const getCandidateDraft = (candidate: Candidate | undefined) => ({
   summary: candidate?.summary ?? '',
 });
 
+const vacancyStatusOptions = ['all', 'Active', 'Paused', 'Closing Soon'] as const;
+type VacancyStatusFilter = (typeof vacancyStatusOptions)[number];
+
 const getVacancyDraft = (vacancy: (typeof initialVacancies)[number] | undefined) => ({
   title: vacancy?.title ?? '',
   team: vacancy?.team ?? '',
@@ -45,6 +48,14 @@ export default function App() {
   const [timelineRecords, setTimelineRecords] = useState(timelineEntries);
   const [selectedVacancyId, setSelectedVacancyId] = useState(initialVacancies[0]?.id ?? '');
   const [candidateDraft, setCandidateDraft] = useState(defaultCandidateForm);
+  const [vacancyFilter, setVacancyFilter] = useState<VacancyStatusFilter>('all');
+  const filteredVacancies = useMemo(() => {
+    if (vacancyFilter === 'all') {
+      return vacancyRecords;
+    }
+
+    return vacancyRecords.filter((vacancy) => vacancy.status === vacancyFilter);
+  }, [vacancyFilter, vacancyRecords]);
   const vacancyCandidates = useMemo(
     () => getCandidatesForVacancy(candidateRecords, selectedVacancyId),
     [candidateRecords, selectedVacancyId],
@@ -60,7 +71,7 @@ export default function App() {
   const [isEditingVacancy, setIsEditingVacancy] = useState(false);
   const [vacancyEditDraft, setVacancyEditDraft] = useState(() => getVacancyDraft(initialVacancies[0]));
 
-  const selectedVacancy = vacancyRecords.find((vacancy) => vacancy.id === selectedVacancyId) ?? vacancyRecords[0];
+  const selectedVacancy = vacancyRecords.find((vacancy) => vacancy.id === selectedVacancyId) ?? filteredVacancies[0] ?? vacancyRecords[0];
 
   const selectedCandidate =
     vacancyCandidates.find((candidate) => candidate.id === selectedCandidateId) ?? vacancyCandidates[0];
@@ -88,6 +99,28 @@ export default function App() {
     return candidateTimeline.filter((entry) => entry.type === timelineFilter);
   }, [timelineRecords, selectedCandidate?.id, timelineFilter]);
   const selectedCandidateStageIndex = selectedCandidate ? stageOrder.indexOf(selectedCandidate.currentStage) : -1;
+  const filteredCandidateCount = useMemo(
+    () => filteredVacancies.reduce((count, vacancy) => count + candidateRecords.filter((candidate) => candidate.vacancyId === vacancy.id).length, 0),
+    [candidateRecords, filteredVacancies],
+  );
+  const vacancyFilterLabel = vacancyFilter === 'all' ? 'All vacancies' : vacancyFilter;
+
+  useEffect(() => {
+    if (filteredVacancies.length === 0) {
+      if (selectedVacancyId !== '') {
+        setSelectedVacancyId('');
+        setSelectedCandidateId('');
+      }
+      return;
+    }
+
+    const selectedStillVisible = filteredVacancies.some((vacancy) => vacancy.id === selectedVacancyId);
+    if (selectedStillVisible) {
+      return;
+    }
+
+    handleVacancySelect(filteredVacancies[0].id);
+  }, [filteredVacancies, selectedVacancyId]);
 
   const handleVacancySelect = (vacancyId: string) => {
     setSelectedVacancyId(vacancyId);
@@ -288,8 +321,38 @@ export default function App() {
             <p>Select the hiring stream you want to review.</p>
           </div>
 
+          <div className="vacancy-filter-card">
+            <div>
+              <span className="detail-label">Quick views</span>
+              <strong>{vacancyFilterLabel}</strong>
+            </div>
+            <span>{filteredCandidateCount} candidates in view</span>
+            <div className="timeline-filters vacancy-filters">
+              {vacancyStatusOptions.map((status) => (
+                <button
+                  key={status}
+                  type="button"
+                  className={`filter-chip ${vacancyFilter === status ? 'active' : ''}`}
+                  onClick={() => setVacancyFilter(status)}
+                >
+                  {status === 'all' ? 'All' : status}
+                  <span className="filter-count">
+                    {status === 'all'
+                      ? vacancyRecords.length
+                      : vacancyRecords.filter((vacancy) => vacancy.status === status).length}
+                  </span>
+                </button>
+              ))}
+            </div>
+          </div>
+
           <div className="vacancy-list">
-            {vacancyRecords.map((vacancy) => {
+            {filteredVacancies.length === 0 ? (
+              <div className="empty-state">
+                No vacancies match this status view yet. Switch filters or update a vacancy status to keep the hiring board moving.
+              </div>
+            ) : (
+              filteredVacancies.map((vacancy) => {
               const count = candidateRecords.filter((candidate) => candidate.vacancyId === vacancy.id).length;
               const isSelected = vacancy.id === selectedVacancyId;
               return (
@@ -312,7 +375,8 @@ export default function App() {
                   </div>
                 </button>
               );
-            })}
+            })
+            )}
           </div>
 
           <form className="candidate-create-card" onSubmit={handleCandidateCreate}>
@@ -419,21 +483,23 @@ export default function App() {
 
         <section className="panel pipeline-panel">
           <div className="panel-header">
-            <h2>{selectedVacancy.title}</h2>
-            <p>{selectedVacancy.team} pipeline grouped by stage.</p>
+            <h2>{selectedVacancy?.title ?? 'No vacancy in this view'}</h2>
+            <p>{selectedVacancy ? `${selectedVacancy.team} pipeline grouped by stage.` : 'Adjust the vacancy status view to inspect a hiring pipeline.'}</p>
           </div>
 
-          <div className="vacancy-summary-banner">
-            <div>
-              <span className="detail-label">Selected vacancy</span>
-              <strong>
-                {selectedVacancy.owner} · {selectedVacancy.status}
-              </strong>
-            </div>
-            <span>{vacancyCandidates.length} active candidate records</span>
-          </div>
+          {selectedVacancy ? (
+            <>
+              <div className="vacancy-summary-banner">
+                <div>
+                  <span className="detail-label">Selected vacancy</span>
+                  <strong>
+                    {selectedVacancy.owner} · {selectedVacancy.status}
+                  </strong>
+                </div>
+                <span>{vacancyCandidates.length} active candidate records</span>
+              </div>
 
-          <div className="pipeline-columns">
+              <div className="pipeline-columns">
             {stageOrder.map((stage) => {
               const stageCandidates = stageBuckets.get(stage) ?? [];
               return (
@@ -474,7 +540,13 @@ export default function App() {
                 </div>
               );
             })}
-          </div>
+              </div>
+            </>
+          ) : (
+            <div className="empty-state">
+              No vacancy is currently selected because this quick view has no matching openings.
+            </div>
+          )}
         </section>
 
         <aside className="panel detail-panel">
