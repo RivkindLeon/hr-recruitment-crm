@@ -24,6 +24,15 @@ const formatDate = (value: string) => value;
 const getCandidatesForVacancy = (allCandidates: Candidate[], vacancyId: string) =>
   allCandidates.filter((candidate) => candidate.vacancyId === vacancyId);
 
+const getStageCounts = (candidates: Candidate[]) =>
+  stageOrder.reduce(
+    (counts, stage) => ({
+      ...counts,
+      [stage]: candidates.filter((candidate) => candidate.currentStage === stage).length,
+    }),
+    {} as Record<CandidateStage, number>,
+  );
+
 const getCandidateDraft = (candidate: Candidate | undefined) => ({
   source: candidate?.source ?? 'LinkedIn',
   location: candidate?.location ?? '',
@@ -104,6 +113,17 @@ export default function App() {
     [candidateRecords, filteredVacancies],
   );
   const vacancyFilterLabel = vacancyFilter === 'all' ? 'All vacancies' : vacancyFilter;
+  const vacancyStageSnapshots = useMemo(
+    () =>
+      vacancyRecords.reduce(
+        (snapshots, vacancy) => ({
+          ...snapshots,
+          [vacancy.id]: getStageCounts(getCandidatesForVacancy(candidateRecords, vacancy.id)),
+        }),
+        {} as Record<string, Record<CandidateStage, number>>,
+      ),
+    [candidateRecords, vacancyRecords],
+  );
 
   useEffect(() => {
     if (filteredVacancies.length === 0) {
@@ -353,29 +373,43 @@ export default function App() {
               </div>
             ) : (
               filteredVacancies.map((vacancy) => {
-              const count = candidateRecords.filter((candidate) => candidate.vacancyId === vacancy.id).length;
-              const isSelected = vacancy.id === selectedVacancyId;
-              return (
-                <button
-                  key={vacancy.id}
-                  type="button"
-                  className={`vacancy-card ${isSelected ? 'selected' : ''}`}
-                  onClick={() => handleVacancySelect(vacancy.id)}
-                >
-                  <div className="vacancy-card-top">
-                    <h3>{vacancy.title}</h3>
-                    <span className={`status-chip status-${vacancy.status.toLowerCase().replace(/\s+/g, '-')}`}>
-                      {vacancy.status}
-                    </span>
-                  </div>
-                  <p>{vacancy.team}</p>
-                  <div className="vacancy-meta">
-                    <span>Owner: {vacancy.owner}</span>
-                    <span>{count} candidates</span>
-                  </div>
-                </button>
-              );
-            })
+                const count = candidateRecords.filter((candidate) => candidate.vacancyId === vacancy.id).length;
+                const isSelected = vacancy.id === selectedVacancyId;
+                const stageSnapshot = vacancyStageSnapshots[vacancy.id] ?? getStageCounts([]);
+                const visibleStageSummary = stageOrder.filter((stage) => stageSnapshot[stage] > 0).slice(0, 4);
+
+                return (
+                  <button
+                    key={vacancy.id}
+                    type="button"
+                    className={`vacancy-card ${isSelected ? 'selected' : ''}`}
+                    onClick={() => handleVacancySelect(vacancy.id)}
+                  >
+                    <div className="vacancy-card-top">
+                      <h3>{vacancy.title}</h3>
+                      <span className={`status-chip status-${vacancy.status.toLowerCase().replace(/\s+/g, '-')}`}>
+                        {vacancy.status}
+                      </span>
+                    </div>
+                    <p>{vacancy.team}</p>
+                    <div className="vacancy-meta">
+                      <span>Owner: {vacancy.owner}</span>
+                      <span>{count} candidates</span>
+                    </div>
+                    <div className="vacancy-stage-summary" aria-label={`${vacancy.title} stage summary`}>
+                      {visibleStageSummary.length > 0 ? (
+                        visibleStageSummary.map((stage) => (
+                          <span key={stage} className="stage-summary-pill">
+                            {stage}: {stageSnapshot[stage]}
+                          </span>
+                        ))
+                      ) : (
+                        <span className="detail-label">No stage activity yet</span>
+                      )}
+                    </div>
+                  </button>
+                );
+              })
             )}
           </div>
 
