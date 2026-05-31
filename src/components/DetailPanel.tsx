@@ -1,4 +1,4 @@
-import type { Candidate, CandidateStage, TimelineEntryType, Vacancy } from '../types';
+import type { Candidate, CandidateStage, TimelineEntry, TimelineEntryType, Vacancy } from '../types';
 import { StageControls } from './StageControls';
 import { VacancyEditSection } from './VacancyEditSection';
 import { CandidateEditSection } from './CandidateEditSection';
@@ -54,7 +54,7 @@ interface DetailPanelProps {
   sourceOptions: string[];
   handleCandidateEdit: (e: React.FormEvent<HTMLFormElement>) => void;
   // Timeline
-  selectedTimeline: import('../types').TimelineEntry[];
+  selectedTimeline: TimelineEntry[];
   timelineFilter: 'all' | TimelineEntryType;
   setTimelineFilter: (f: 'all' | TimelineEntryType) => void;
   editingTimelineId: string | null;
