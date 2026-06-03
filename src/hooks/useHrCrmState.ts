@@ -7,6 +7,7 @@ import {
   getCandidateDraft,
   getCandidatesForVacancy,
   getStageSnapshotMap,
+  getVacancyAttentionSummary,
   getVacancyDraft,
   moveCandidateInList,
   stageBucketCandidates,
@@ -94,6 +95,21 @@ export function useHrCrmState(
 
   const vacancyStageSnapshots = useMemo(
     () => getStageSnapshotMap(vacancyRecords, candidateRecords),
+    [candidateRecords, vacancyRecords],
+  );
+
+  const vacancyAttentionSummaries = useMemo(
+    () =>
+      vacancyRecords.reduce(
+        (summaries, vacancy) => ({
+          ...summaries,
+          [vacancy.id]: getVacancyAttentionSummary(
+            vacancy,
+            getCandidatesForVacancy(candidateRecords, vacancy.id),
+          ),
+        }),
+        {} as Record<string, ReturnType<typeof getVacancyAttentionSummary>>,
+      ),
     [candidateRecords, vacancyRecords],
   );
 
@@ -272,6 +288,7 @@ export function useHrCrmState(
     selectedCandidateStageIndex,
     filteredCandidateCount,
     vacancyStageSnapshots,
+    vacancyAttentionSummaries,
 
     // Setters
     setSelectedCandidateId,

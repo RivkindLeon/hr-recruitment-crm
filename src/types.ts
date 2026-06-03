@@ -18,6 +18,14 @@ export interface Vacancy {
   status: VacancyStatus;
 }
 
+export type VacancyAttentionTone = 'steady' | 'watch' | 'urgent';
+
+export interface VacancyAttentionSummary {
+  tone: VacancyAttentionTone;
+  label: string;
+  detail: string;
+}
+
 export interface Candidate {
   id: string;
   vacancyId: string;
