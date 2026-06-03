@@ -1,4 +1,11 @@
-import type { Candidate, CandidateStage, TimelineEntry, Vacancy, VacancyStatus } from './types';
+import type {
+  Candidate,
+  CandidateStage,
+  TimelineEntry,
+  Vacancy,
+  VacancyAttentionSummary,
+  VacancyStatus,
+} from './types';
 import { stageOrder, TODAY } from './constants';
 
 export function getCandidatesForVacancy(
@@ -85,6 +92,78 @@ export function updateVacancyRecord(
   updates: Partial<Vacancy>,
 ): Vacancy[] {
   return vacancies.map((v) => (v.id === id ? { ...v, ...updates } : v));
+}
+
+function getDaysSince(date: string): number {
+  const parsedDate = new Date(`${date}T00:00:00Z`);
+  const parsedToday = new Date(`${TODAY}T00:00:00Z`);
+  return Math.floor((parsedToday.getTime() - parsedDate.getTime()) / (1000 * 60 * 60 * 24));
+}
+
+function formatLatestActivityLabel(candidates: Candidate[]): string {
+  const latestActivity = [...candidates]
+    .map((candidate) => candidate.lastActivityDate)
+    .sort((a, b) => b.localeCompare(a))[0];
+
+  if (!latestActivity) {
+    return 'No activity yet';
+  }
+
+  const daysSince = getDaysSince(latestActivity);
+  if (daysSince <= 0) return 'Updated today';
+  if (daysSince === 1) return 'Updated 1 day ago';
+  return `Updated ${daysSince} days ago`;
+}
+
+export function getVacancyAttentionSummary(
+  vacancy: Vacancy,
+  candidates: Candidate[],
+): VacancyAttentionSummary {
+  const openCandidates = candidates.filter(
+    (candidate) => !['Hired', 'Rejected'].includes(candidate.currentStage),
+  );
+  const unscheduledLateStageCount = openCandidates.filter(
+    (candidate) =>
+      ['Recruiter Interview', 'Hiring Manager Interview', 'Panel / Final Interview', 'Offer'].includes(
+        candidate.currentStage,
+      ) && !candidate.nextInterview,
+  ).length;
+  const staleOpenCandidateCount = openCandidates.filter(
+    (candidate) => getDaysSince(candidate.lastActivityDate) >= 7,
+  ).length;
+
+  if (unscheduledLateStageCount > 0) {
+    return {
+      tone: 'urgent',
+      label: 'Needs scheduling',
+      detail: `${unscheduledLateStageCount} late-stage candidate${unscheduledLateStageCount === 1 ? '' : 's'} without a next step`,
+    };
+  }
+
+  if (staleOpenCandidateCount > 0) {
+    return {
+      tone: 'watch',
+      label: 'Stale pipeline',
+      detail: `${staleOpenCandidateCount} open candidate${staleOpenCandidateCount === 1 ? '' : 's'} idle for 7+ days`,
+    };
+  }
+
+  if (vacancy.status === 'Closing Soon' && openCandidates.length > 0) {
+    return {
+      tone: 'watch',
+      label: 'Closing soon',
+      detail: `${openCandidates.length} active candidate${openCandidates.length === 1 ? '' : 's'} still in play`,
+    };
+  }
+
+  return {
+    tone: 'steady',
+    label: openCandidates.length === 0 ? 'No active pipeline' : 'On track',
+    detail:
+      openCandidates.length === 0
+        ? 'No open candidates yet for this vacancy'
+        : formatLatestActivityLabel(openCandidates),
+  };
 }
 
 export function getStageSnapshotMap(
