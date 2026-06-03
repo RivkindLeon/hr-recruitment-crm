@@ -1,4 +1,4 @@
-import type { Vacancy, VacancyStatus } from '../types';
+import type { Vacancy, VacancyAttentionSummary } from '../types';
 import type { VacancyStatusFilter } from '../constants';
 import { vacancyStatusFilterOptions } from '../constants';
 import type { CandidateStage } from '../types';
@@ -14,6 +14,7 @@ interface VacancyListPanelProps {
   candidateRecords: { vacancyId: string }[];
   vacancyRecords: Vacancy[];
   filteredCandidateCount: number;
+  vacancyAttentionSummaries: Record<string, VacancyAttentionSummary>;
   /** Candidate create form props */
   candidateDraft: {
     name: string;
@@ -49,6 +50,7 @@ export function VacancyListPanel({
   candidateRecords,
   vacancyRecords,
   filteredCandidateCount,
+  vacancyAttentionSummaries,
   candidateDraft,
   setCandidateDraft,
   sourceOptions,
@@ -102,6 +104,7 @@ export function VacancyListPanel({
             const visibleStageSummary = stageOrder
               .filter((s) => (stageSnapshot[s] ?? 0) > 0)
               .slice(0, 4);
+            const attentionSummary = vacancyAttentionSummaries[vacancy.id];
 
             return (
               <button
@@ -122,6 +125,10 @@ export function VacancyListPanel({
                 <div className="vacancy-meta">
                   <span>Owner: {vacancy.owner}</span>
                   <span>{count} candidates</span>
+                </div>
+                <div className={`vacancy-attention-card tone-${attentionSummary.tone}`}>
+                  <span className="vacancy-attention-label">{attentionSummary.label}</span>
+                  <span>{attentionSummary.detail}</span>
                 </div>
                 <div
                   className="vacancy-stage-summary"
