@@ -309,6 +309,14 @@ p {
   padding: 14px;
 }
 
+.vacancy-filter-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: end;
+  flex-wrap: wrap;
+}
+
 .candidate-summary-card,
 .timeline-create-card {
   margin-bottom: 16px;
@@ -334,7 +342,8 @@ p {
 .stage-picker-field select,
 .form-field input,
 .form-field select,
-.form-field textarea {
+.form-field textarea,
+.sort-field select {
   border: 1px solid rgba(148, 163, 184, 0.18);
   background: rgba(15, 23, 42, 0.95);
   color: #e2e8f0;
@@ -372,7 +381,8 @@ p {
   flex-wrap: wrap;
 }
 
-.form-field {
+.form-field,
+.sort-field {
   display: flex;
   flex: 1;
   min-width: 120px;
@@ -380,7 +390,8 @@ p {
   gap: 8px;
 }
 
-.form-field span {
+.form-field span,
+.sort-field span {
   color: #cbd5e1;
   font-size: 14px;
 }
