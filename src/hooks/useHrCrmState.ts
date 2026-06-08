@@ -1,6 +1,12 @@
 import { useMemo, useState, useEffect } from 'react';
 import type { Candidate, CandidateStage, TimelineEntry, Vacancy } from '../types';
-import { stageOrder, TODAY, defaultCandidateForm, defaultTimelineForm } from '../constants';
+import {
+  stageOrder,
+  TODAY,
+  defaultCandidateForm,
+  defaultTimelineForm,
+  vacancySortOptions,
+} from '../constants';
 import {
   buildNewCandidate,
   buildNewTimelineEntry,
@@ -10,11 +16,12 @@ import {
   getVacancyAttentionSummary,
   getVacancyDraft,
   moveCandidateInList,
+  sortVacancies,
   stageBucketCandidates,
   updateCandidateRecord,
   updateVacancyRecord,
 } from '../utils';
-import type { VacancyStatusFilter } from '../constants';
+import type { VacancySortOption, VacancyStatusFilter } from '../constants';
 
 export function useHrCrmState(
   initialVacancies: Vacancy[],
@@ -27,11 +34,31 @@ export function useHrCrmState(
   const [selectedVacancyId, setSelectedVacancyId] = useState(initialVacancies[0]?.id ?? '');
   const [candidateDraft, setCandidateDraft] = useState(defaultCandidateForm);
   const [vacancyFilter, setVacancyFilter] = useState<VacancyStatusFilter>('all');
+  const [vacancySort, setVacancySort] = useState<VacancySortOption>(vacancySortOptions[0]);
+
+  const vacancyAttentionSummaries = useMemo(
+    () =>
+      vacancyRecords.reduce(
+        (summaries, vacancy) => ({
+          ...summaries,
+          [vacancy.id]: getVacancyAttentionSummary(
+            vacancy,
+            getCandidatesForVacancy(candidateRecords, vacancy.id),
+          ),
+        }),
+        {} as Record<string, ReturnType<typeof getVacancyAttentionSummary>>,
+      ),
+    [candidateRecords, vacancyRecords],
+  );
 
   const filteredVacancies = useMemo(() => {
-    if (vacancyFilter === 'all') return vacancyRecords;
-    return vacancyRecords.filter((v) => v.status === vacancyFilter);
-  }, [vacancyFilter, vacancyRecords]);
+    const statusFiltered =
+      vacancyFilter === 'all'
+        ? vacancyRecords
+        : vacancyRecords.filter((v) => v.status === vacancyFilter);
+
+    return sortVacancies(statusFiltered, candidateRecords, vacancyAttentionSummaries, vacancySort);
+  }, [candidateRecords, vacancyAttentionSummaries, vacancyFilter, vacancyRecords, vacancySort]);
 
   const vacancyCandidates = useMemo(
     () => getCandidatesForVacancy(candidateRecords, selectedVacancyId),
@@ -95,21 +122,6 @@ export function useHrCrmState(
 
   const vacancyStageSnapshots = useMemo(
     () => getStageSnapshotMap(vacancyRecords, candidateRecords),
-    [candidateRecords, vacancyRecords],
-  );
-
-  const vacancyAttentionSummaries = useMemo(
-    () =>
-      vacancyRecords.reduce(
-        (summaries, vacancy) => ({
-          ...summaries,
-          [vacancy.id]: getVacancyAttentionSummary(
-            vacancy,
-            getCandidatesForVacancy(candidateRecords, vacancy.id),
-          ),
-        }),
-        {} as Record<string, ReturnType<typeof getVacancyAttentionSummary>>,
-      ),
     [candidateRecords, vacancyRecords],
   );
 
@@ -275,6 +287,7 @@ export function useHrCrmState(
     vacancyEditDraft,
     candidateDraft,
     vacancyFilter,
+    vacancySort,
 
     // Derived
     filteredVacancies,
@@ -303,6 +316,7 @@ export function useHrCrmState(
     setVacancyEditDraft,
     setCandidateDraft,
     setVacancyFilter,
+    setVacancySort,
 
     // Handlers
     handleVacancySelect,

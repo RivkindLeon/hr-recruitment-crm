@@ -1,4 +1,10 @@
-import type { Candidate, CandidateStage, TimelineEntry, TimelineEntryType, Vacancy } from '../types';
+import type {
+  Candidate,
+  CandidateStage,
+  TimelineEntry,
+  TimelineEntryType,
+  Vacancy,
+} from '../types';
 import { StageControls } from './StageControls';
 import { VacancyEditSection } from './VacancyEditSection';
 import { CandidateEditSection } from './CandidateEditSection';

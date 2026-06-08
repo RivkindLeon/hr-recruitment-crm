@@ -34,6 +34,8 @@ export default function App() {
           filteredVacancies={state.filteredVacancies}
           vacancyFilter={state.vacancyFilter}
           setVacancyFilter={state.setVacancyFilter}
+          vacancySort={state.vacancySort}
+          setVacancySort={state.setVacancySort}
           selectedVacancyId={state.selectedVacancyId}
           handleVacancySelect={state.handleVacancySelect}
           vacancyStageSnapshots={state.vacancyStageSnapshots}

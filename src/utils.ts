@@ -7,6 +7,7 @@ import type {
   VacancyStatus,
 } from './types';
 import { stageOrder, TODAY } from './constants';
+import type { VacancySortOption } from './constants';
 
 export function getCandidatesForVacancy(
   allCandidates: Candidate[],
@@ -115,6 +116,67 @@ function formatLatestActivityLabel(candidates: Candidate[]): string {
   return `Updated ${daysSince} days ago`;
 }
 
+export function getOpenCandidateCount(candidates: Candidate[]): number {
+  return candidates.filter((candidate) => !['Hired', 'Rejected'].includes(candidate.currentStage))
+    .length;
+}
+
+function getVacancyAttentionRank(summary: VacancyAttentionSummary): number {
+  if (summary.tone === 'urgent') return 0;
+  if (summary.tone === 'watch') return 1;
+  return 2;
+}
+
+function getLatestActivityDate(candidates: Candidate[]): string {
+  return (
+    [...candidates]
+      .map((candidate) => candidate.lastActivityDate)
+      .sort((a, b) => b.localeCompare(a))[0] ?? ''
+  );
+}
+
+export function sortVacancies(
+  vacancies: Vacancy[],
+  candidates: Candidate[],
+  attentionSummaries: Record<string, VacancyAttentionSummary>,
+  sortOption: VacancySortOption,
+): Vacancy[] {
+  return [...vacancies].sort((left, right) => {
+    if (sortOption === 'title') {
+      return left.title.localeCompare(right.title);
+    }
+
+    const leftCandidates = getCandidatesForVacancy(candidates, left.id);
+    const rightCandidates = getCandidatesForVacancy(candidates, right.id);
+
+    if (sortOption === 'active-pipeline') {
+      const pipelineDiff =
+        getOpenCandidateCount(rightCandidates) - getOpenCandidateCount(leftCandidates);
+      if (pipelineDiff !== 0) return pipelineDiff;
+      return left.title.localeCompare(right.title);
+    }
+
+    if (sortOption === 'latest-activity') {
+      const activityDiff = getLatestActivityDate(rightCandidates).localeCompare(
+        getLatestActivityDate(leftCandidates),
+      );
+      if (activityDiff !== 0) return activityDiff;
+      return left.title.localeCompare(right.title);
+    }
+
+    const attentionDiff =
+      getVacancyAttentionRank(attentionSummaries[left.id]) -
+      getVacancyAttentionRank(attentionSummaries[right.id]);
+    if (attentionDiff !== 0) return attentionDiff;
+
+    const pipelineDiff =
+      getOpenCandidateCount(rightCandidates) - getOpenCandidateCount(leftCandidates);
+    if (pipelineDiff !== 0) return pipelineDiff;
+
+    return left.title.localeCompare(right.title);
+  });
+}
+
 export function getVacancyAttentionSummary(
   vacancy: Vacancy,
   candidates: Candidate[],
@@ -124,9 +186,12 @@ export function getVacancyAttentionSummary(
   );
   const unscheduledLateStageCount = openCandidates.filter(
     (candidate) =>
-      ['Recruiter Interview', 'Hiring Manager Interview', 'Panel / Final Interview', 'Offer'].includes(
-        candidate.currentStage,
-      ) && !candidate.nextInterview,
+      [
+        'Recruiter Interview',
+        'Hiring Manager Interview',
+        'Panel / Final Interview',
+        'Offer',
+      ].includes(candidate.currentStage) && !candidate.nextInterview,
   ).length;
   const staleOpenCandidateCount = openCandidates.filter(
     (candidate) => getDaysSince(candidate.lastActivityDate) >= 7,

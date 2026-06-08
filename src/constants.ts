@@ -23,6 +23,15 @@ export const vacancyStatusFilterOptions = ['all', ...vacancyStatusOptions] as co
 
 export type VacancyStatusFilter = (typeof vacancyStatusFilterOptions)[number];
 
+export const vacancySortOptions = [
+  'attention',
+  'active-pipeline',
+  'latest-activity',
+  'title',
+] as const;
+
+export type VacancySortOption = (typeof vacancySortOptions)[number];
+
 export const timelineEntryTypes: TimelineEntryType[] = ['feedback', 'interview', 'communication'];
 
 export const defaultCandidateForm = {

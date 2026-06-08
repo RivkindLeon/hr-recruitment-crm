@@ -1,6 +1,6 @@
 import type { Vacancy, VacancyAttentionSummary } from '../types';
-import type { VacancyStatusFilter } from '../constants';
-import { vacancyStatusFilterOptions } from '../constants';
+import type { VacancySortOption, VacancyStatusFilter } from '../constants';
+import { vacancySortOptions, vacancyStatusFilterOptions } from '../constants';
 import type { CandidateStage } from '../types';
 import { stageOrder } from '../constants';
 
@@ -8,6 +8,8 @@ interface VacancyListPanelProps {
   filteredVacancies: Vacancy[];
   vacancyFilter: VacancyStatusFilter;
   setVacancyFilter: (f: VacancyStatusFilter) => void;
+  vacancySort: VacancySortOption;
+  setVacancySort: (sort: VacancySortOption) => void;
   selectedVacancyId: string;
   handleVacancySelect: (id: string) => void;
   vacancyStageSnapshots: Record<string, Record<CandidateStage, number>>;
@@ -44,6 +46,8 @@ export function VacancyListPanel({
   filteredVacancies,
   vacancyFilter,
   setVacancyFilter,
+  vacancySort,
+  setVacancySort,
   selectedVacancyId,
   handleVacancySelect,
   vacancyStageSnapshots,
@@ -66,9 +70,30 @@ export function VacancyListPanel({
       </div>
 
       <div className="vacancy-filter-card">
-        <div>
-          <span className="detail-label">Quick views</span>
-          <strong>{vacancyFilterLabel}</strong>
+        <div className="vacancy-filter-header">
+          <div>
+            <span className="detail-label">Quick views</span>
+            <strong>{vacancyFilterLabel}</strong>
+          </div>
+          <label className="sort-field">
+            <span>Sort by</span>
+            <select
+              value={vacancySort}
+              onChange={(e) => setVacancySort(e.target.value as VacancySortOption)}
+            >
+              {vacancySortOptions.map((option) => (
+                <option key={option} value={option}>
+                  {option === 'attention'
+                    ? 'Attention'
+                    : option === 'active-pipeline'
+                      ? 'Active pipeline'
+                      : option === 'latest-activity'
+                        ? 'Latest activity'
+                        : 'Title'}
+                </option>
+              ))}
+            </select>
+          </label>
         </div>
         <span>{filteredCandidateCount} candidates in view</span>
         <div className="timeline-filters vacancy-filters">
