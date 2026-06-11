@@ -26,6 +26,13 @@ export interface VacancyAttentionSummary {
   detail: string;
 }
 
+export interface VacancyQueueMetric {
+  id: 'open' | 'late-stage' | 'needs-scheduling' | 'stale';
+  label: string;
+  value: number;
+  tone: VacancyAttentionTone;
+}
+
 export interface Candidate {
   id: string;
   vacancyId: string;

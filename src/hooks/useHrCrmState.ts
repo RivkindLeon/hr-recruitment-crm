@@ -15,6 +15,7 @@ import {
   getStageSnapshotMap,
   getVacancyAttentionSummary,
   getVacancyDraft,
+  getVacancyQueueMetrics,
   moveCandidateInList,
   sortVacancies,
   stageBucketCandidates,
@@ -116,6 +117,16 @@ export function useHrCrmState(
       filteredVacancies.reduce(
         (count, v) => count + candidateRecords.filter((c) => c.vacancyId === v.id).length,
         0,
+      ),
+    [candidateRecords, filteredVacancies],
+  );
+
+  const filteredQueueMetrics = useMemo(
+    () =>
+      getVacancyQueueMetrics(
+        candidateRecords.filter((candidate) =>
+          filteredVacancies.some((vacancy) => vacancy.id === candidate.vacancyId),
+        ),
       ),
     [candidateRecords, filteredVacancies],
   );
@@ -300,6 +311,7 @@ export function useHrCrmState(
     selectedTimeline,
     selectedCandidateStageIndex,
     filteredCandidateCount,
+    filteredQueueMetrics,
     vacancyStageSnapshots,
     vacancyAttentionSummaries,
 

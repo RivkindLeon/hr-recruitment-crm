@@ -4,6 +4,7 @@ import type {
   TimelineEntry,
   Vacancy,
   VacancyAttentionSummary,
+  VacancyQueueMetric,
   VacancyStatus,
 } from './types';
 import { stageOrder, TODAY } from './constants';
@@ -175,6 +176,48 @@ export function sortVacancies(
 
     return left.title.localeCompare(right.title);
   });
+}
+
+export function getVacancyQueueMetrics(candidates: Candidate[]): VacancyQueueMetric[] {
+  const openCandidates = candidates.filter(
+    (candidate) => !['Hired', 'Rejected'].includes(candidate.currentStage),
+  );
+  const lateStageCandidates = openCandidates.filter((candidate) =>
+    [
+      'Recruiter Interview',
+      'Hiring Manager Interview',
+      'Panel / Final Interview',
+      'Offer',
+    ].includes(candidate.currentStage),
+  );
+  const unscheduledLateStageCount = lateStageCandidates.filter(
+    (candidate) => !candidate.nextInterview,
+  ).length;
+  const staleOpenCandidateCount = openCandidates.filter(
+    (candidate) => getDaysSince(candidate.lastActivityDate) >= 7,
+  ).length;
+
+  return [
+    { id: 'open', label: 'Open pipeline', value: openCandidates.length, tone: 'steady' },
+    {
+      id: 'late-stage',
+      label: 'Late stage',
+      value: lateStageCandidates.length,
+      tone: lateStageCandidates.length > 0 ? 'watch' : 'steady',
+    },
+    {
+      id: 'needs-scheduling',
+      label: 'Needs scheduling',
+      value: unscheduledLateStageCount,
+      tone: unscheduledLateStageCount > 0 ? 'urgent' : 'steady',
+    },
+    {
+      id: 'stale',
+      label: 'Idle 7+ days',
+      value: staleOpenCandidateCount,
+      tone: staleOpenCandidateCount > 0 ? 'watch' : 'steady',
+    },
+  ];
 }
 
 export function getVacancyAttentionSummary(
