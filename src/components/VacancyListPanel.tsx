@@ -1,4 +1,4 @@
-import type { Vacancy, VacancyAttentionSummary } from '../types';
+import type { Vacancy, VacancyAttentionSummary, VacancyQueueMetric } from '../types';
 import type { VacancySortOption, VacancyStatusFilter } from '../constants';
 import { vacancySortOptions, vacancyStatusFilterOptions } from '../constants';
 import type { CandidateStage } from '../types';
@@ -16,6 +16,7 @@ interface VacancyListPanelProps {
   candidateRecords: { vacancyId: string }[];
   vacancyRecords: Vacancy[];
   filteredCandidateCount: number;
+  filteredQueueMetrics: VacancyQueueMetric[];
   vacancyAttentionSummaries: Record<string, VacancyAttentionSummary>;
   /** Candidate create form props */
   candidateDraft: {
@@ -54,6 +55,7 @@ export function VacancyListPanel({
   candidateRecords,
   vacancyRecords,
   filteredCandidateCount,
+  filteredQueueMetrics,
   vacancyAttentionSummaries,
   candidateDraft,
   setCandidateDraft,
@@ -96,6 +98,14 @@ export function VacancyListPanel({
           </label>
         </div>
         <span>{filteredCandidateCount} candidates in view</span>
+        <div className="vacancy-queue-metrics" aria-label="Queue metrics for current vacancy view">
+          {filteredQueueMetrics.map((metric) => (
+            <div key={metric.id} className={`queue-metric-pill tone-${metric.tone}`}>
+              <span>{metric.label}</span>
+              <strong>{metric.value}</strong>
+            </div>
+          ))}
+        </div>
         <div className="timeline-filters vacancy-filters">
           {vacancyStatusFilterOptions.map((status) => (
             <button

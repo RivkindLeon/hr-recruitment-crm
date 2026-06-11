@@ -42,6 +42,7 @@ export default function App() {
           candidateRecords={state.candidateRecords}
           vacancyRecords={state.vacancyRecords}
           filteredCandidateCount={state.filteredCandidateCount}
+          filteredQueueMetrics={state.filteredQueueMetrics}
           vacancyAttentionSummaries={state.vacancyAttentionSummaries}
           candidateDraft={state.candidateDraft}
           setCandidateDraft={state.setCandidateDraft}
