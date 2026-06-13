@@ -1,8 +1,19 @@
-import type { Vacancy, VacancyAttentionSummary, VacancyQueueMetric } from '../types';
-import type { VacancySortOption, VacancyStatusFilter } from '../constants';
-import { vacancySortOptions, vacancyStatusFilterOptions } from '../constants';
-import type { CandidateStage } from '../types';
-import { stageOrder } from '../constants';
+import type {
+  CandidateStage,
+  SavedVacancyView,
+  SavedVacancyViewSlotId,
+  Vacancy,
+  VacancyAttentionSummary,
+  VacancyQueueMetric,
+  VacancySortOption,
+  VacancyStatusFilter,
+} from '../types';
+import {
+  savedVacancyViewSlots,
+  stageOrder,
+  vacancySortOptions,
+  vacancyStatusFilterOptions,
+} from '../constants';
 
 interface VacancyListPanelProps {
   filteredVacancies: Vacancy[];
@@ -18,7 +29,9 @@ interface VacancyListPanelProps {
   filteredCandidateCount: number;
   filteredQueueMetrics: VacancyQueueMetric[];
   vacancyAttentionSummaries: Record<string, VacancyAttentionSummary>;
-  /** Candidate create form props */
+  savedVacancyViews: Record<SavedVacancyViewSlotId, SavedVacancyView | null>;
+  saveCurrentVacancyView: (slotId: SavedVacancyViewSlotId) => void;
+  applySavedVacancyView: (slotId: SavedVacancyViewSlotId) => void;
   candidateDraft: {
     name: string;
     source: string;
@@ -43,6 +56,17 @@ interface VacancyListPanelProps {
   handleCandidateCreate: (e: React.FormEvent<HTMLFormElement>) => void;
 }
 
+function getSortLabel(sort: VacancySortOption) {
+  if (sort === 'attention') return 'Attention';
+  if (sort === 'active-pipeline') return 'Active pipeline';
+  if (sort === 'latest-activity') return 'Latest activity';
+  return 'Title';
+}
+
+function getFilterLabel(filter: VacancyStatusFilter) {
+  return filter === 'all' ? 'All vacancies' : filter;
+}
+
 export function VacancyListPanel({
   filteredVacancies,
   vacancyFilter,
@@ -57,6 +81,9 @@ export function VacancyListPanel({
   filteredCandidateCount,
   filteredQueueMetrics,
   vacancyAttentionSummaries,
+  savedVacancyViews,
+  saveCurrentVacancyView,
+  applySavedVacancyView,
   candidateDraft,
   setCandidateDraft,
   sourceOptions,
@@ -85,13 +112,7 @@ export function VacancyListPanel({
             >
               {vacancySortOptions.map((option) => (
                 <option key={option} value={option}>
-                  {option === 'attention'
-                    ? 'Attention'
-                    : option === 'active-pipeline'
-                      ? 'Active pipeline'
-                      : option === 'latest-activity'
-                        ? 'Latest activity'
-                        : 'Title'}
+                  {getSortLabel(option)}
                 </option>
               ))}
             </select>
@@ -105,6 +126,54 @@ export function VacancyListPanel({
               <strong>{metric.value}</strong>
             </div>
           ))}
+        </div>
+        <div className="saved-view-section">
+          <div className="saved-view-section-header">
+            <div>
+              <span className="detail-label">Saved views</span>
+              <strong>Return to your preferred filter + sort setup</strong>
+            </div>
+            <span>Saved locally for this browser</span>
+          </div>
+
+          <div className="saved-view-list">
+            {savedVacancyViewSlots.map((slot) => {
+              const savedView = savedVacancyViews[slot.id];
+              const isActiveView =
+                savedView?.vacancyFilter === vacancyFilter &&
+                savedView?.vacancySort === vacancySort;
+
+              return (
+                <div key={slot.id} className={`saved-view-card ${isActiveView ? 'active' : ''}`}>
+                  <div>
+                    <strong>{slot.label}</strong>
+                    <p>
+                      {savedView
+                        ? `${getFilterLabel(savedView.vacancyFilter)} • ${getSortLabel(savedView.vacancySort)}`
+                        : slot.description}
+                    </p>
+                  </div>
+                  <div className="saved-view-actions">
+                    <button
+                      type="button"
+                      className="stage-action-button"
+                      onClick={() => applySavedVacancyView(slot.id)}
+                      disabled={!savedView}
+                    >
+                      Open
+                    </button>
+                    <button
+                      type="button"
+                      className="stage-action-button primary"
+                      onClick={() => saveCurrentVacancyView(slot.id)}
+                    >
+                      Save current
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
         </div>
         <div className="timeline-filters vacancy-filters">
           {vacancyStatusFilterOptions.map((status) => (

@@ -1,5 +1,19 @@
 export type VacancyStatus = 'Active' | 'Paused' | 'Closing Soon';
 
+export type VacancyStatusFilter = 'all' | VacancyStatus;
+
+export type VacancySortOption = 'attention' | 'active-pipeline' | 'latest-activity' | 'title';
+
+export type SavedVacancyViewSlotId = 'active-work' | 'urgent-hiring';
+
+export interface SavedVacancyView {
+  slotId: SavedVacancyViewSlotId;
+  label: string;
+  description: string;
+  vacancyFilter: VacancyStatusFilter;
+  vacancySort: VacancySortOption;
+}
+
 export type CandidateStage =
   | 'New'
   | 'Screening'

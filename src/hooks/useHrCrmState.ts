@@ -1,11 +1,23 @@
 import { useMemo, useState, useEffect } from 'react';
-import type { Candidate, CandidateStage, TimelineEntry, Vacancy } from '../types';
+import type {
+  Candidate,
+  CandidateStage,
+  SavedVacancyView,
+  SavedVacancyViewSlotId,
+  TimelineEntry,
+  Vacancy,
+  VacancySortOption,
+  VacancyStatusFilter,
+} from '../types';
 import {
   stageOrder,
   TODAY,
   defaultCandidateForm,
   defaultTimelineForm,
+  savedVacancyViewsStorageKey,
+  savedVacancyViewSlots,
   vacancySortOptions,
+  vacancyStatusFilterOptions,
 } from '../constants';
 import {
   buildNewCandidate,
@@ -22,7 +34,49 @@ import {
   updateCandidateRecord,
   updateVacancyRecord,
 } from '../utils';
-import type { VacancySortOption, VacancyStatusFilter } from '../constants';
+
+type SavedVacancyViewMap = Record<SavedVacancyViewSlotId, SavedVacancyView | null>;
+
+function getEmptySavedVacancyViews(): SavedVacancyViewMap {
+  return {
+    'active-work': null,
+    'urgent-hiring': null,
+  };
+}
+
+function readSavedVacancyViews(): SavedVacancyViewMap {
+  if (typeof window === 'undefined') return getEmptySavedVacancyViews();
+
+  try {
+    const raw = window.localStorage.getItem(savedVacancyViewsStorageKey);
+    if (!raw) return getEmptySavedVacancyViews();
+
+    const parsed = JSON.parse(raw) as Partial<Record<SavedVacancyViewSlotId, SavedVacancyView>>;
+
+    return savedVacancyViewSlots.reduce((views, slot) => {
+      const view = parsed[slot.id];
+      const hasValidFilter =
+        !!view && vacancyStatusFilterOptions.includes(view.vacancyFilter as VacancyStatusFilter);
+      const hasValidSort =
+        !!view && vacancySortOptions.includes(view.vacancySort as VacancySortOption);
+
+      views[slot.id] =
+        view && hasValidFilter && hasValidSort
+          ? {
+              slotId: slot.id,
+              label: slot.label,
+              description: slot.description,
+              vacancyFilter: view.vacancyFilter,
+              vacancySort: view.vacancySort,
+            }
+          : null;
+
+      return views;
+    }, getEmptySavedVacancyViews());
+  } catch {
+    return getEmptySavedVacancyViews();
+  }
+}
 
 export function useHrCrmState(
   initialVacancies: Vacancy[],
@@ -36,6 +90,9 @@ export function useHrCrmState(
   const [candidateDraft, setCandidateDraft] = useState(defaultCandidateForm);
   const [vacancyFilter, setVacancyFilter] = useState<VacancyStatusFilter>('all');
   const [vacancySort, setVacancySort] = useState<VacancySortOption>(vacancySortOptions[0]);
+  const [savedVacancyViews, setSavedVacancyViews] = useState<SavedVacancyViewMap>(() =>
+    readSavedVacancyViews(),
+  );
 
   const vacancyAttentionSummaries = useMemo(
     () =>
@@ -136,7 +193,6 @@ export function useHrCrmState(
     [candidateRecords, vacancyRecords],
   );
 
-  // Sync selection when filter excludes the selected vacancy
   useEffect(() => {
     if (filteredVacancies.length === 0) {
       if (selectedVacancyId !== '') {
@@ -150,6 +206,11 @@ export function useHrCrmState(
       handleVacancySelect(filteredVacancies[0].id);
     }
   }, [filteredVacancies, selectedVacancyId]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    window.localStorage.setItem(savedVacancyViewsStorageKey, JSON.stringify(savedVacancyViews));
+  }, [savedVacancyViews]);
 
   function handleVacancySelect(vacancyId: string) {
     setSelectedVacancyId(vacancyId);
@@ -280,8 +341,31 @@ export function useHrCrmState(
     setEditingTimelineId(null);
   }
 
+  function saveCurrentVacancyView(slotId: SavedVacancyViewSlotId) {
+    const slot = savedVacancyViewSlots.find((candidateSlot) => candidateSlot.id === slotId);
+    if (!slot) return;
+
+    setSavedVacancyViews((current) => ({
+      ...current,
+      [slotId]: {
+        slotId,
+        label: slot.label,
+        description: slot.description,
+        vacancyFilter,
+        vacancySort,
+      },
+    }));
+  }
+
+  function applySavedVacancyView(slotId: SavedVacancyViewSlotId) {
+    const view = savedVacancyViews[slotId];
+    if (!view) return;
+
+    setVacancyFilter(view.vacancyFilter);
+    setVacancySort(view.vacancySort);
+  }
+
   return {
-    // State
     vacancyRecords,
     candidateRecords,
     timelineRecords,
@@ -300,7 +384,6 @@ export function useHrCrmState(
     vacancyFilter,
     vacancySort,
 
-    // Derived
     filteredVacancies,
     vacancyCandidates,
     selectedVacancy,
@@ -314,8 +397,8 @@ export function useHrCrmState(
     filteredQueueMetrics,
     vacancyStageSnapshots,
     vacancyAttentionSummaries,
+    savedVacancyViews,
 
-    // Setters
     setSelectedCandidateId,
     setSelectedStageDraft,
     setIsEditingCandidate,
@@ -330,7 +413,6 @@ export function useHrCrmState(
     setVacancyFilter,
     setVacancySort,
 
-    // Handlers
     handleVacancySelect,
     moveCandidateToStage,
     moveSelectedCandidateBy,
@@ -339,5 +421,7 @@ export function useHrCrmState(
     handleVacancyEdit,
     handleTimelineCreate,
     handleTimelineEdit,
+    saveCurrentVacancyView,
+    applySavedVacancyView,
   };
 }
