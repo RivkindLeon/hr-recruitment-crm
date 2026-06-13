@@ -44,6 +44,9 @@ export default function App() {
           filteredCandidateCount={state.filteredCandidateCount}
           filteredQueueMetrics={state.filteredQueueMetrics}
           vacancyAttentionSummaries={state.vacancyAttentionSummaries}
+          savedVacancyViews={state.savedVacancyViews}
+          saveCurrentVacancyView={state.saveCurrentVacancyView}
+          applySavedVacancyView={state.applySavedVacancyView}
           candidateDraft={state.candidateDraft}
           setCandidateDraft={state.setCandidateDraft}
           sourceOptions={state.sourceOptions}

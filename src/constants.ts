@@ -1,4 +1,11 @@
-import type { CandidateStage, TimelineEntryType, VacancyStatus } from './types';
+import type {
+  CandidateStage,
+  SavedVacancyViewSlotId,
+  TimelineEntryType,
+  VacancySortOption,
+  VacancyStatus,
+  VacancyStatusFilter,
+} from './types';
 
 export const TODAY = '2026-05-10';
 
@@ -19,18 +26,36 @@ export const vacancyStatusOptions: readonly VacancyStatus[] = [
   'Closing Soon',
 ] as const;
 
-export const vacancyStatusFilterOptions = ['all', ...vacancyStatusOptions] as const;
+export const vacancyStatusFilterOptions: readonly VacancyStatusFilter[] = [
+  'all',
+  ...vacancyStatusOptions,
+] as const;
 
-export type VacancyStatusFilter = (typeof vacancyStatusFilterOptions)[number];
-
-export const vacancySortOptions = [
+export const vacancySortOptions: readonly VacancySortOption[] = [
   'attention',
   'active-pipeline',
   'latest-activity',
   'title',
 ] as const;
 
-export type VacancySortOption = (typeof vacancySortOptions)[number];
+export const savedVacancyViewSlots: readonly {
+  id: SavedVacancyViewSlotId;
+  label: string;
+  description: string;
+}[] = [
+  {
+    id: 'active-work',
+    label: 'Active work',
+    description: 'Keep your default view for day-to-day recruiting.',
+  },
+  {
+    id: 'urgent-hiring',
+    label: 'Urgent hiring',
+    description: 'Save the view you use for fast-moving or risky openings.',
+  },
+] as const;
+
+export const savedVacancyViewsStorageKey = 'hr-recruitment-crm:saved-vacancy-views';
 
 export const timelineEntryTypes: TimelineEntryType[] = ['feedback', 'interview', 'communication'];
 
