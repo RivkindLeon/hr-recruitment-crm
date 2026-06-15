@@ -32,6 +32,8 @@ interface VacancyListPanelProps {
   savedVacancyViews: Record<SavedVacancyViewSlotId, SavedVacancyView | null>;
   saveCurrentVacancyView: (slotId: SavedVacancyViewSlotId) => void;
   applySavedVacancyView: (slotId: SavedVacancyViewSlotId) => void;
+  renameSavedVacancyView: (slotId: SavedVacancyViewSlotId, customName: string) => void;
+  clearSavedVacancyView: (slotId: SavedVacancyViewSlotId) => void;
   candidateDraft: {
     name: string;
     source: string;
@@ -84,6 +86,8 @@ export function VacancyListPanel({
   savedVacancyViews,
   saveCurrentVacancyView,
   applySavedVacancyView,
+  renameSavedVacancyView,
+  clearSavedVacancyView,
   candidateDraft,
   setCandidateDraft,
   sourceOptions,
@@ -146,12 +150,23 @@ export function VacancyListPanel({
               return (
                 <div key={slot.id} className={`saved-view-card ${isActiveView ? 'active' : ''}`}>
                   <div>
-                    <strong>{slot.label}</strong>
+                    <strong>{savedView?.customName || slot.label}</strong>
                     <p>
                       {savedView
                         ? `${getFilterLabel(savedView.vacancyFilter)} • ${getSortLabel(savedView.vacancySort)}`
                         : slot.description}
                     </p>
+                    <label className="saved-view-name-field">
+                      <span>View name</span>
+                      <input
+                        type="text"
+                        value={savedView?.customName ?? ''}
+                        onChange={(e) => renameSavedVacancyView(slot.id, e.target.value)}
+                        placeholder={slot.label}
+                        disabled={!savedView}
+                        maxLength={28}
+                      />
+                    </label>
                   </div>
                   <div className="saved-view-actions">
                     <button
@@ -168,6 +183,14 @@ export function VacancyListPanel({
                       onClick={() => saveCurrentVacancyView(slot.id)}
                     >
                       Save current
+                    </button>
+                    <button
+                      type="button"
+                      className="stage-action-button"
+                      onClick={() => clearSavedVacancyView(slot.id)}
+                      disabled={!savedView}
+                    >
+                      Clear
                     </button>
                   </div>
                 </div>
