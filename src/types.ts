@@ -10,6 +10,7 @@ export interface SavedVacancyView {
   slotId: SavedVacancyViewSlotId;
   label: string;
   description: string;
+  customName?: string;
   vacancyFilter: VacancyStatusFilter;
   vacancySort: VacancySortOption;
 }

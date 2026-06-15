@@ -66,6 +66,10 @@ function readSavedVacancyViews(): SavedVacancyViewMap {
               slotId: slot.id,
               label: slot.label,
               description: slot.description,
+              customName:
+                typeof view.customName === 'string' && view.customName.trim().length > 0
+                  ? view.customName.trim()
+                  : undefined,
               vacancyFilter: view.vacancyFilter,
               vacancySort: view.vacancySort,
             }
@@ -351,6 +355,7 @@ export function useHrCrmState(
         slotId,
         label: slot.label,
         description: slot.description,
+        customName: current[slotId]?.customName,
         vacancyFilter,
         vacancySort,
       },
@@ -363,6 +368,30 @@ export function useHrCrmState(
 
     setVacancyFilter(view.vacancyFilter);
     setVacancySort(view.vacancySort);
+  }
+
+  function renameSavedVacancyView(slotId: SavedVacancyViewSlotId, customName: string) {
+    setSavedVacancyViews((current) => {
+      const existingView = current[slotId];
+      if (!existingView) return current;
+
+      const trimmedName = customName.trim();
+
+      return {
+        ...current,
+        [slotId]: {
+          ...existingView,
+          customName: trimmedName || undefined,
+        },
+      };
+    });
+  }
+
+  function clearSavedVacancyView(slotId: SavedVacancyViewSlotId) {
+    setSavedVacancyViews((current) => ({
+      ...current,
+      [slotId]: null,
+    }));
   }
 
   return {
@@ -423,5 +452,7 @@ export function useHrCrmState(
     handleTimelineEdit,
     saveCurrentVacancyView,
     applySavedVacancyView,
+    renameSavedVacancyView,
+    clearSavedVacancyView,
   };
 }
