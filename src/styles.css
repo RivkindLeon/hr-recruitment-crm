@@ -358,6 +358,27 @@ p {
   font-size: 13px;
 }
 
+.saved-view-timestamp {
+  display: block;
+  margin-top: 2px;
+  font-size: 11px;
+  color: #64748b;
+}
+
+.saved-view-default-toggle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 8px;
+  font-size: 13px;
+  color: #94a3b8;
+  cursor: pointer;
+}
+
+.saved-view-default-toggle input[type='checkbox'] {
+  accent-color: #38bdf8;
+}
+
 .saved-view-actions {
   gap: 8px;
   flex-wrap: wrap;

@@ -49,6 +49,8 @@ export default function App() {
           applySavedVacancyView={state.applySavedVacancyView}
           renameSavedVacancyView={state.renameSavedVacancyView}
           clearSavedVacancyView={state.clearSavedVacancyView}
+          defaultVacancyViewSlot={state.defaultVacancyViewSlot}
+          setDefaultVacancyViewSlot={state.setDefaultVacancyViewSlot}
           candidateDraft={state.candidateDraft}
           setCandidateDraft={state.setCandidateDraft}
           sourceOptions={state.sourceOptions}

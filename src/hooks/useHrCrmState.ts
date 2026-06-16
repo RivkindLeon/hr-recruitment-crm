@@ -15,6 +15,7 @@ import {
   defaultCandidateForm,
   defaultTimelineForm,
   savedVacancyViewsStorageKey,
+  defaultVacancyViewSlotKey,
   savedVacancyViewSlots,
   vacancySortOptions,
   vacancyStatusFilterOptions,
@@ -72,6 +73,10 @@ function readSavedVacancyViews(): SavedVacancyViewMap {
                   : undefined,
               vacancyFilter: view.vacancyFilter,
               vacancySort: view.vacancySort,
+              lastSavedAt:
+                typeof view.lastSavedAt === 'string' && view.lastSavedAt.trim().length > 0
+                  ? view.lastSavedAt.trim()
+                  : undefined,
             }
           : null;
 
@@ -79,6 +84,19 @@ function readSavedVacancyViews(): SavedVacancyViewMap {
     }, getEmptySavedVacancyViews());
   } catch {
     return getEmptySavedVacancyViews();
+  }
+}
+
+function readDefaultVacancyViewSlot(): SavedVacancyViewSlotId | null {
+  if (typeof window === 'undefined') return null;
+  try {
+    const raw = window.localStorage.getItem(defaultVacancyViewSlotKey);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    if (parsed === 'active-work' || parsed === 'urgent-hiring') return parsed;
+    return null;
+  } catch {
+    return null;
   }
 }
 
@@ -97,6 +115,8 @@ export function useHrCrmState(
   const [savedVacancyViews, setSavedVacancyViews] = useState<SavedVacancyViewMap>(() =>
     readSavedVacancyViews(),
   );
+  const [defaultVacancyViewSlot, setDefaultVacancyViewSlot] =
+    useState<SavedVacancyViewSlotId | null>(() => readDefaultVacancyViewSlot());
 
   const vacancyAttentionSummaries = useMemo(
     () =>
@@ -215,6 +235,29 @@ export function useHrCrmState(
     if (typeof window === 'undefined') return;
     window.localStorage.setItem(savedVacancyViewsStorageKey, JSON.stringify(savedVacancyViews));
   }, [savedVacancyViews]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    if (defaultVacancyViewSlot) {
+      window.localStorage.setItem(
+        defaultVacancyViewSlotKey,
+        JSON.stringify(defaultVacancyViewSlot),
+      );
+    } else {
+      window.localStorage.removeItem(defaultVacancyViewSlotKey);
+    }
+  }, [defaultVacancyViewSlot]);
+
+  // Apply default view on first mount if one is set and the view exists
+  useEffect(() => {
+    if (!defaultVacancyViewSlot) return;
+    const view = savedVacancyViews[defaultVacancyViewSlot];
+    if (!view) return;
+    setVacancyFilter(view.vacancyFilter);
+    setVacancySort(view.vacancySort);
+    // Only run once on mount
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   function handleVacancySelect(vacancyId: string) {
     setSelectedVacancyId(vacancyId);
@@ -358,6 +401,7 @@ export function useHrCrmState(
         customName: current[slotId]?.customName,
         vacancyFilter,
         vacancySort,
+        lastSavedAt: new Date().toISOString(),
       },
     }));
   }
@@ -392,6 +436,10 @@ export function useHrCrmState(
       ...current,
       [slotId]: null,
     }));
+    // Also clear default if it matches the cleared slot
+    if (defaultVacancyViewSlot === slotId) {
+      setDefaultVacancyViewSlot(null);
+    }
   }
 
   return {
@@ -427,6 +475,7 @@ export function useHrCrmState(
     vacancyStageSnapshots,
     vacancyAttentionSummaries,
     savedVacancyViews,
+    defaultVacancyViewSlot,
 
     setSelectedCandidateId,
     setSelectedStageDraft,
@@ -454,5 +503,6 @@ export function useHrCrmState(
     applySavedVacancyView,
     renameSavedVacancyView,
     clearSavedVacancyView,
+    setDefaultVacancyViewSlot,
   };
 }

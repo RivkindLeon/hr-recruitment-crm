@@ -13,6 +13,7 @@ export interface SavedVacancyView {
   customName?: string;
   vacancyFilter: VacancyStatusFilter;
   vacancySort: VacancySortOption;
+  lastSavedAt?: string;
 }
 
 export type CandidateStage =
