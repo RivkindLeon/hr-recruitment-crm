@@ -56,8 +56,14 @@ export const savedVacancyViewSlots: readonly {
 ] as const;
 
 export const savedVacancyViewsStorageKey = 'hr-recruitment-crm:saved-vacancy-views';
+export const defaultVacancyViewSlotKey = 'hr-recruitment-crm:default-vacancy-view-slot';
 
 export const timelineEntryTypes: TimelineEntryType[] = ['feedback', 'interview', 'communication'];
+
+export const defaultVacancyViewSlotOptions: readonly SavedVacancyViewSlotId[] = [
+  'active-work',
+  'urgent-hiring',
+];
 
 export const defaultCandidateForm = {
   name: '',

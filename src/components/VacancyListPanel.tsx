@@ -34,6 +34,8 @@ interface VacancyListPanelProps {
   applySavedVacancyView: (slotId: SavedVacancyViewSlotId) => void;
   renameSavedVacancyView: (slotId: SavedVacancyViewSlotId, customName: string) => void;
   clearSavedVacancyView: (slotId: SavedVacancyViewSlotId) => void;
+  defaultVacancyViewSlot: SavedVacancyViewSlotId | null;
+  setDefaultVacancyViewSlot: (slot: SavedVacancyViewSlotId | null) => void;
   candidateDraft: {
     name: string;
     source: string;
@@ -69,6 +71,25 @@ function getFilterLabel(filter: VacancyStatusFilter) {
   return filter === 'all' ? 'All vacancies' : filter;
 }
 
+function formatLastSaved(isoString: string): string {
+  try {
+    const date = new Date(isoString);
+    if (isNaN(date.getTime())) return '';
+    const now = new Date();
+    const diffMs = now.getTime() - date.getTime();
+    const diffMin = Math.floor(diffMs / 60000);
+    if (diffMin < 1) return 'just now';
+    if (diffMin < 60) return `${diffMin}m ago`;
+    const diffHrs = Math.floor(diffMin / 60);
+    if (diffHrs < 24) return `${diffHrs}h ago`;
+    const diffDays = Math.floor(diffHrs / 24);
+    if (diffDays < 7) return `${diffDays}d ago`;
+    return date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+  } catch {
+    return '';
+  }
+}
+
 export function VacancyListPanel({
   filteredVacancies,
   vacancyFilter,
@@ -88,6 +109,8 @@ export function VacancyListPanel({
   applySavedVacancyView,
   renameSavedVacancyView,
   clearSavedVacancyView,
+  defaultVacancyViewSlot,
+  setDefaultVacancyViewSlot,
   candidateDraft,
   setCandidateDraft,
   sourceOptions,
@@ -151,6 +174,11 @@ export function VacancyListPanel({
                 <div key={slot.id} className={`saved-view-card ${isActiveView ? 'active' : ''}`}>
                   <div>
                     <strong>{savedView?.customName || slot.label}</strong>
+                    {savedView?.lastSavedAt && (
+                      <span className="saved-view-timestamp">
+                        Saved {formatLastSaved(savedView.lastSavedAt)}
+                      </span>
+                    )}
                     <p>
                       {savedView
                         ? `${getFilterLabel(savedView.vacancyFilter)} • ${getSortLabel(savedView.vacancySort)}`
@@ -166,6 +194,17 @@ export function VacancyListPanel({
                         disabled={!savedView}
                         maxLength={28}
                       />
+                    </label>
+                    <label className="saved-view-default-toggle">
+                      <input
+                        type="checkbox"
+                        checked={defaultVacancyViewSlot === slot.id}
+                        onChange={(e) =>
+                          setDefaultVacancyViewSlot(e.target.checked ? slot.id : null)
+                        }
+                        disabled={!savedView}
+                      />
+                      <span>Open by default on load</span>
                     </label>
                   </div>
                   <div className="saved-view-actions">
