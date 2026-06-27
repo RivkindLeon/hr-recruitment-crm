@@ -59,10 +59,22 @@ describe('useHrCrmState', () => {
     it('resets candidate edit and timeline state on vacancy switch', () => {
       const { result } = renderState();
       act(() => result.current.setIsEditingCandidate(true));
-      act(() => result.current.setTimelineDraft({ type: 'feedback', title: 't', detail: 'd', date: '2026-05-10' }));
+      act(() =>
+        result.current.setTimelineDraft({
+          type: 'feedback',
+          title: 't',
+          detail: 'd',
+          date: '2026-05-10',
+        }),
+      );
       act(() => result.current.handleVacancySelect('vac-2'));
       expect(result.current.isEditingCandidate).toBe(false);
-      expect(result.current.timelineDraft).toEqual({ type: 'feedback', title: '', detail: '', date: '2026-05-10' });
+      expect(result.current.timelineDraft).toEqual({
+        type: 'feedback',
+        title: '',
+        detail: '',
+        date: '2026-05-10',
+      });
     });
   });
 
@@ -86,31 +98,39 @@ describe('useHrCrmState', () => {
     it('does not move past the first or last stage', () => {
       const { result } = renderState();
       act(() => result.current.moveSelectedCandidateBy(-1)); // cand-1 is at Screening, can go back to New
-      expect(result.current.candidateRecords.find((c) => c.id === 'cand-1')?.currentStage).toBe('New');
+      expect(result.current.candidateRecords.find((c) => c.id === 'cand-1')?.currentStage).toBe(
+        'New',
+      );
 
       act(() => result.current.moveSelectedCandidateBy(-1)); // Already at New, should not change
-      expect(result.current.candidateRecords.find((c) => c.id === 'cand-1')?.currentStage).toBe('New');
+      expect(result.current.candidateRecords.find((c) => c.id === 'cand-1')?.currentStage).toBe(
+        'New',
+      );
     });
 
     it('moveCandidateToStage moves to exact stage', () => {
       const { result } = renderState();
       act(() => result.current.moveCandidateToStage('cand-1', 'Offer'));
-      expect(result.current.candidateRecords.find((c) => c.id === 'cand-1')?.currentStage).toBe('Offer');
+      expect(result.current.candidateRecords.find((c) => c.id === 'cand-1')?.currentStage).toBe(
+        'Offer',
+      );
     });
   });
 
   describe('candidate creation', () => {
     it('creates a candidate with form data', () => {
       const { result } = renderState();
-      act(() => result.current.setCandidateDraft({
-        name: 'New Test',
-        stage: 'New',
-        source: 'LinkedIn',
-        location: 'Tel Aviv',
-        score: '85',
-        nextInterview: '',
-        summary: 'Test candidate',
-      }));
+      act(() =>
+        result.current.setCandidateDraft({
+          name: 'New Test',
+          stage: 'New',
+          source: 'LinkedIn',
+          location: 'Tel Aviv',
+          score: '85',
+          nextInterview: '',
+          summary: 'Test candidate',
+        }),
+      );
       act(() => {
         const e = { preventDefault: () => {} } as React.FormEvent<HTMLFormElement>;
         result.current.handleCandidateCreate(e);
@@ -125,15 +145,17 @@ describe('useHrCrmState', () => {
     it('does not create candidate with empty name', () => {
       const { result } = renderState();
       const initialCount = result.current.candidateRecords.length;
-      act(() => result.current.setCandidateDraft({
-        name: '',
-        stage: 'New',
-        source: 'LinkedIn',
-        location: 'Tel Aviv',
-        score: '85',
-        nextInterview: '',
-        summary: 'Test',
-      }));
+      act(() =>
+        result.current.setCandidateDraft({
+          name: '',
+          stage: 'New',
+          source: 'LinkedIn',
+          location: 'Tel Aviv',
+          score: '85',
+          nextInterview: '',
+          summary: 'Test',
+        }),
+      );
       act(() => {
         const e = { preventDefault: () => {} } as React.FormEvent<HTMLFormElement>;
         result.current.handleCandidateCreate(e);
@@ -146,7 +168,14 @@ describe('useHrCrmState', () => {
     it('updates candidate fields on edit', () => {
       const { result } = renderState();
       act(() => result.current.setIsEditingCandidate(true));
-      act(() => result.current.setCandidateEditDraft((d) => ({ ...d, source: 'Referral', score: '95', location: 'Haifa' })));
+      act(() =>
+        result.current.setCandidateEditDraft((d) => ({
+          ...d,
+          source: 'Referral',
+          score: '95',
+          location: 'Haifa',
+        })),
+      );
       act(() => {
         const e = { preventDefault: () => {} } as React.FormEvent<HTMLFormElement>;
         result.current.handleCandidateEdit(e);
@@ -162,7 +191,13 @@ describe('useHrCrmState', () => {
     it('updates vacancy fields on edit', () => {
       const { result } = renderState();
       act(() => result.current.setIsEditingVacancy(true));
-      act(() => result.current.setVacancyEditDraft((d) => ({ ...d, title: 'Updated Title', status: 'Paused' })));
+      act(() =>
+        result.current.setVacancyEditDraft((d) => ({
+          ...d,
+          title: 'Updated Title',
+          status: 'Paused',
+        })),
+      );
       act(() => {
         const e = { preventDefault: () => {} } as React.FormEvent<HTMLFormElement>;
         result.current.handleVacancyEdit(e);
@@ -177,12 +212,14 @@ describe('useHrCrmState', () => {
     it('creates a timeline entry', () => {
       const { result } = renderState();
       const initialCount = result.current.timelineRecords.length;
-      act(() => result.current.setTimelineDraft({
-        type: 'interview',
-        title: 'Test interview',
-        detail: 'Went well',
-        date: '2026-05-10',
-      }));
+      act(() =>
+        result.current.setTimelineDraft({
+          type: 'interview',
+          title: 'Test interview',
+          detail: 'Went well',
+          date: '2026-05-10',
+        }),
+      );
       act(() => {
         const e = { preventDefault: () => {} } as React.FormEvent<HTMLFormElement>;
         result.current.handleTimelineCreate(e);
@@ -278,7 +315,9 @@ describe('useHrCrmState', () => {
       const { result } = renderState();
       act(() => result.current.setVacancyFilter('Active'));
       act(() => result.current.saveCurrentVacancyView('active-work'));
-      const stored = JSON.parse(localStorage.getItem('hr-recruitment-crm:saved-vacancy-views') || '{}');
+      const stored = JSON.parse(
+        localStorage.getItem('hr-recruitment-crm:saved-vacancy-views') || '{}',
+      );
       expect(stored['active-work'].vacancyFilter).toBe('Active');
     });
   });

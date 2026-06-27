@@ -14,9 +14,27 @@ import type {
 } from '../types';
 
 const baseVacancies: Vacancy[] = [
-  { id: 'vac-1', title: 'Senior Frontend Engineer', team: 'Product Engineering', owner: 'Dana Levi', status: 'Active' },
-  { id: 'vac-2', title: 'Technical Recruiter', team: 'Talent', owner: 'Maya Cohen', status: 'Active' },
-  { id: 'vac-3', title: 'Product Designer', team: 'Design', owner: 'Noam Katz', status: 'Closing Soon' },
+  {
+    id: 'vac-1',
+    title: 'Senior Frontend Engineer',
+    team: 'Product Engineering',
+    owner: 'Dana Levi',
+    status: 'Active',
+  },
+  {
+    id: 'vac-2',
+    title: 'Technical Recruiter',
+    team: 'Talent',
+    owner: 'Maya Cohen',
+    status: 'Active',
+  },
+  {
+    id: 'vac-3',
+    title: 'Product Designer',
+    team: 'Design',
+    owner: 'Noam Katz',
+    status: 'Closing Soon',
+  },
 ];
 
 const baseCandidates = [
@@ -25,10 +43,19 @@ const baseCandidates = [
   { vacancyId: 'vac-2', id: 'cand-3' },
 ];
 
-function buildSnapshot(count: number, stage: CandidateStage = 'Screening'): Record<CandidateStage, number> {
+function buildSnapshot(
+  count: number,
+  stage: CandidateStage = 'Screening',
+): Record<CandidateStage, number> {
   const s: Record<CandidateStage, number> = {
-    New: 0, Screening: 0, 'Recruiter Interview': 0, 'Hiring Manager Interview': 0,
-    'Panel / Final Interview': 0, Offer: 0, Hired: 0, Rejected: 0,
+    New: 0,
+    Screening: 0,
+    'Recruiter Interview': 0,
+    'Hiring Manager Interview': 0,
+    'Panel / Final Interview': 0,
+    Offer: 0,
+    Hired: 0,
+    Rejected: 0,
   };
   s[stage] = count;
   return s;
@@ -43,7 +70,11 @@ const baseStageSnapshots: Record<string, Record<CandidateStage, number>> = {
 const baseAttentionSummaries: Record<string, VacancyAttentionSummary> = {
   'vac-1': { tone: 'steady', label: 'On track', detail: 'Updated recently' },
   'vac-2': { tone: 'watch', label: 'Stale pipeline', detail: '1 open candidate idle for 7+ days' },
-  'vac-3': { tone: 'urgent', label: 'Needs scheduling', detail: '1 late-stage candidate without a next step' },
+  'vac-3': {
+    tone: 'urgent',
+    label: 'Needs scheduling',
+    detail: '1 late-stage candidate without a next step',
+  },
 };
 
 const baseQueueMetrics: VacancyQueueMetric[] = [
@@ -53,7 +84,14 @@ const baseQueueMetrics: VacancyQueueMetric[] = [
   { id: 'stale', label: 'Idle 7+ days', value: 0, tone: 'steady' },
 ];
 
-const sourceOptions = ['LinkedIn', 'Referral', 'Inbound', 'Agency', 'Dribbble', 'Previous applicant'];
+const sourceOptions = [
+  'LinkedIn',
+  'Referral',
+  'Inbound',
+  'Agency',
+  'Dribbble',
+  'Previous applicant',
+];
 
 const defaultCandidateDraft = {
   name: '',
@@ -175,7 +213,9 @@ describe('VacancyListPanel', () => {
   describe('queue metrics', () => {
     it('renders metric pills with values', () => {
       const { container } = renderComponent();
-      const metricArea = container.querySelector('[aria-label="Queue metrics for current vacancy view"]')!;
+      const metricArea = container.querySelector(
+        '[aria-label="Queue metrics for current vacancy view"]',
+      )!;
       expect(metricArea.textContent).toContain('Open pipeline');
       expect(metricArea.textContent).toContain('Late stage');
       expect(metricArea.textContent).toContain('3');
@@ -204,15 +244,19 @@ describe('VacancyListPanel', () => {
       const cards = container.querySelectorAll('.saved-view-card');
       cards.forEach((card) => {
         const btns = card.querySelectorAll('button');
-        expect((btns[0] as HTMLButtonElement).disabled).toBe(true);  // Open
-        expect((btns[2] as HTMLButtonElement).disabled).toBe(true);  // Clear
+        expect((btns[0] as HTMLButtonElement).disabled).toBe(true); // Open
+        expect((btns[2] as HTMLButtonElement).disabled).toBe(true); // Clear
       });
     });
 
     it('enables Open only for slot with saved view', () => {
       const savedView: SavedVacancyView = {
-        slotId: 'active-work', label: 'Active work', description: 'Default view',
-        vacancyFilter: 'Active', vacancySort: 'title', lastSavedAt: new Date().toISOString(),
+        slotId: 'active-work',
+        label: 'Active work',
+        description: 'Default view',
+        vacancyFilter: 'Active',
+        vacancySort: 'title',
+        lastSavedAt: new Date().toISOString(),
       };
       const { container } = renderComponent({
         savedVacancyViews: { 'active-work': savedView, 'urgent-hiring': null },
@@ -226,8 +270,12 @@ describe('VacancyListPanel', () => {
 
     it('calls applySavedVacancyView when Open is clicked', async () => {
       const savedView: SavedVacancyView = {
-        slotId: 'active-work', label: 'Active work', description: 'Default view',
-        vacancyFilter: 'Active', vacancySort: 'title', lastSavedAt: new Date().toISOString(),
+        slotId: 'active-work',
+        label: 'Active work',
+        description: 'Default view',
+        vacancyFilter: 'Active',
+        vacancySort: 'title',
+        lastSavedAt: new Date().toISOString(),
       };
       const { container, props } = renderComponent({
         savedVacancyViews: { 'active-work': savedView, 'urgent-hiring': null },
@@ -240,8 +288,12 @@ describe('VacancyListPanel', () => {
 
     it('calls clearSavedVacancyView when Clear is clicked', async () => {
       const savedView: SavedVacancyView = {
-        slotId: 'urgent-hiring', label: 'Urgent hiring', description: 'Fast view',
-        vacancyFilter: 'Closing Soon', vacancySort: 'active-pipeline', lastSavedAt: new Date().toISOString(),
+        slotId: 'urgent-hiring',
+        label: 'Urgent hiring',
+        description: 'Fast view',
+        vacancyFilter: 'Closing Soon',
+        vacancySort: 'active-pipeline',
+        lastSavedAt: new Date().toISOString(),
       };
       const { container, props } = renderComponent({
         savedVacancyViews: { 'active-work': null, 'urgent-hiring': savedView },
@@ -254,8 +306,12 @@ describe('VacancyListPanel', () => {
 
     it('calls renameSavedVacancyView on name input change', async () => {
       const savedView: SavedVacancyView = {
-        slotId: 'active-work', label: 'Active work', description: 'Default view',
-        vacancyFilter: 'Active', vacancySort: 'title', lastSavedAt: new Date().toISOString(),
+        slotId: 'active-work',
+        label: 'Active work',
+        description: 'Default view',
+        vacancyFilter: 'Active',
+        vacancySort: 'title',
+        lastSavedAt: new Date().toISOString(),
       };
       const { container, props } = renderComponent({
         savedVacancyViews: { 'active-work': savedView, 'urgent-hiring': null },
@@ -267,8 +323,12 @@ describe('VacancyListPanel', () => {
 
     it('enables checkbox when view exists', () => {
       const savedView: SavedVacancyView = {
-        slotId: 'active-work', label: 'Active work', description: 'Default view',
-        vacancyFilter: 'Active', vacancySort: 'title', lastSavedAt: new Date().toISOString(),
+        slotId: 'active-work',
+        label: 'Active work',
+        description: 'Default view',
+        vacancyFilter: 'Active',
+        vacancySort: 'title',
+        lastSavedAt: new Date().toISOString(),
       };
       const { container } = renderComponent({
         savedVacancyViews: { 'active-work': savedView, 'urgent-hiring': null },
@@ -288,7 +348,15 @@ describe('VacancyListPanel', () => {
 
     it('calls handleCandidateCreate on submit', async () => {
       const { container, props } = renderComponent({
-        candidateDraft: { name: 'Test', source: 'LinkedIn', stage: 'New', location: 'TLV', score: '80', nextInterview: '', summary: 'Test' },
+        candidateDraft: {
+          name: 'Test',
+          source: 'LinkedIn',
+          stage: 'New',
+          location: 'TLV',
+          score: '80',
+          nextInterview: '',
+          summary: 'Test',
+        },
       });
       const submitBtn = container.querySelector('.candidate-create-card button[type="submit"]')!;
       await userEvent.click(submitBtn);

@@ -102,9 +102,27 @@ const sampleCandidates: Candidate[] = [
 ];
 
 const sampleVacancies: Vacancy[] = [
-  { id: 'vac-1', title: 'Senior Frontend Engineer', team: 'Product Engineering', owner: 'Dana Levi', status: 'Active' },
-  { id: 'vac-2', title: 'Technical Recruiter', team: 'Talent', owner: 'Maya Cohen', status: 'Active' },
-  { id: 'vac-3', title: 'Product Designer', team: 'Design', owner: 'Noam Katz', status: 'Closing Soon' },
+  {
+    id: 'vac-1',
+    title: 'Senior Frontend Engineer',
+    team: 'Product Engineering',
+    owner: 'Dana Levi',
+    status: 'Active',
+  },
+  {
+    id: 'vac-2',
+    title: 'Technical Recruiter',
+    team: 'Talent',
+    owner: 'Maya Cohen',
+    status: 'Active',
+  },
+  {
+    id: 'vac-3',
+    title: 'Product Designer',
+    team: 'Design',
+    owner: 'Noam Katz',
+    status: 'Closing Soon',
+  },
 ];
 
 describe('getCandidatesForVacancy', () => {
@@ -134,7 +152,7 @@ describe('getStageCounts', () => {
 
   it('counts candidates per stage correctly', () => {
     const counts = getStageCounts(sampleCandidates);
-    expect(counts['New']).toBe(1);   // cand-5
+    expect(counts['New']).toBe(1); // cand-5
     expect(counts['Screening']).toBe(1); // cand-1
     expect(counts['Recruiter Interview']).toBe(1); // cand-6
     expect(counts['Hiring Manager Interview']).toBe(1); // cand-2
@@ -352,7 +370,13 @@ describe('getVacancyAttentionSummary', () => {
       location: 'Tlv',
       summary: 'test',
     };
-    const closingVacancy: Vacancy = { id: 'vac-x', title: 'Test', team: 'T', owner: 'O', status: 'Closing Soon' };
+    const closingVacancy: Vacancy = {
+      id: 'vac-x',
+      title: 'Test',
+      team: 'T',
+      owner: 'O',
+      status: 'Closing Soon',
+    };
     const summary = getVacancyAttentionSummary(closingVacancy, [freshCandidate]);
     expect(summary.tone).toBe('watch');
     expect(summary.label).toBe('Closing soon');
@@ -459,7 +483,12 @@ describe('buildNewCandidate', () => {
 
 describe('buildNewTimelineEntry', () => {
   it('builds a timeline entry with timestamped id', () => {
-    const draft = { type: 'feedback' as const, title: 'Great candidate', detail: 'Very strong', date: '2026-05-10' };
+    const draft = {
+      type: 'feedback' as const,
+      title: 'Great candidate',
+      detail: 'Very strong',
+      date: '2026-05-10',
+    };
     const entry = buildNewTimelineEntry('cand-1', draft);
     expect(entry.candidateId).toBe('cand-1');
     expect(entry.type).toBe('feedback');
