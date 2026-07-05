@@ -233,11 +233,9 @@ export function useHrCrmState(
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
-    window.localStorage.setItem(savedVacancyViewsStorageKey, JSON.stringify(savedVacancyViews));
-  }, [savedVacancyViews]);
 
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
+    window.localStorage.setItem(savedVacancyViewsStorageKey, JSON.stringify(savedVacancyViews));
+
     if (defaultVacancyViewSlot) {
       window.localStorage.setItem(
         defaultVacancyViewSlotKey,
@@ -246,7 +244,7 @@ export function useHrCrmState(
     } else {
       window.localStorage.removeItem(defaultVacancyViewSlotKey);
     }
-  }, [defaultVacancyViewSlot]);
+  }, [savedVacancyViews, defaultVacancyViewSlot]);
 
   // Apply default view on first mount if one is set and the view exists
   useEffect(() => {

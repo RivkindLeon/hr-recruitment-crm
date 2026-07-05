@@ -60,11 +60,6 @@ export const defaultVacancyViewSlotKey = 'hr-recruitment-crm:default-vacancy-vie
 
 export const timelineEntryTypes: TimelineEntryType[] = ['feedback', 'interview', 'communication'];
 
-export const defaultVacancyViewSlotOptions: readonly SavedVacancyViewSlotId[] = [
-  'active-work',
-  'urgent-hiring',
-];
-
 export const defaultCandidateForm = {
   name: '',
   source: 'LinkedIn',
