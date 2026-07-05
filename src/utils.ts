@@ -5,10 +5,11 @@ import type {
   Vacancy,
   VacancyAttentionSummary,
   VacancyQueueMetric,
+  VacancySortOption,
   VacancyStatus,
+  VacancyStatusFilter,
 } from './types';
 import { stageOrder, TODAY } from './constants';
-import type { VacancySortOption } from './constants';
 
 export function getCandidatesForVacancy(
   allCandidates: Candidate[],
@@ -326,4 +327,37 @@ export function buildNewTimelineEntry(
     detail: draft.detail.trim(),
     date: draft.date.trim(),
   };
+}
+
+export function getSortLabel(sort: VacancySortOption): string {
+  const labels: Record<VacancySortOption, string> = {
+    attention: 'Attention',
+    'active-pipeline': 'Active pipeline',
+    'latest-activity': 'Latest activity',
+    title: 'Title',
+  };
+  return labels[sort];
+}
+
+export function getFilterLabel(filter: VacancyStatusFilter): string {
+  return filter === 'all' ? 'All vacancies' : filter;
+}
+
+export function formatLastSaved(isoString: string): string {
+  try {
+    const date = new Date(isoString);
+    if (isNaN(date.getTime())) return '';
+    const now = new Date();
+    const diffMs = now.getTime() - date.getTime();
+    const diffMin = Math.floor(diffMs / 60000);
+    if (diffMin < 1) return 'just now';
+    if (diffMin < 60) return `${diffMin}m ago`;
+    const diffHrs = Math.floor(diffMin / 60);
+    if (diffHrs < 24) return `${diffHrs}h ago`;
+    const diffDays = Math.floor(diffHrs / 24);
+    if (diffDays < 7) return `${diffDays}d ago`;
+    return date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+  } catch {
+    return '';
+  }
 }
