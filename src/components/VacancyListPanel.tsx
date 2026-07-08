@@ -8,14 +8,10 @@ import type {
   VacancySortOption,
   VacancyStatusFilter,
 } from '../types';
-import {
-  savedVacancyViewSlots,
-  stageOrder,
-  vacancySortOptions,
-  vacancyStatusFilterOptions,
-} from '../constants';
-import { getSortLabel, getFilterLabel, formatLastSaved } from '../utils';
+import { stageOrder, vacancySortOptions, vacancyStatusFilterOptions } from '../constants';
+import { getSortLabel } from '../utils';
 import { CandidateCreateForm } from './CandidateCreateForm';
+import { SavedViewsSection } from './SavedViewsSection';
 
 interface VacancyListPanelProps {
   filteredVacancies: Vacancy[];
@@ -126,89 +122,17 @@ export function VacancyListPanel({
             </div>
           ))}
         </div>
-        <div className="saved-view-section">
-          <div className="saved-view-section-header">
-            <div>
-              <span className="detail-label">Saved views</span>
-              <strong>Return to your preferred filter + sort setup</strong>
-            </div>
-            <span>Saved locally for this browser</span>
-          </div>
-
-          <div className="saved-view-list">
-            {savedVacancyViewSlots.map((slot) => {
-              const savedView = savedVacancyViews[slot.id];
-              const isActiveView =
-                savedView?.vacancyFilter === vacancyFilter &&
-                savedView?.vacancySort === vacancySort;
-
-              return (
-                <div key={slot.id} className={`saved-view-card ${isActiveView ? 'active' : ''}`}>
-                  <div>
-                    <strong>{savedView?.customName || slot.label}</strong>
-                    {savedView?.lastSavedAt && (
-                      <span className="saved-view-timestamp">
-                        Saved {formatLastSaved(savedView.lastSavedAt)}
-                      </span>
-                    )}
-                    <p>
-                      {savedView
-                        ? `${getFilterLabel(savedView.vacancyFilter)} • ${getSortLabel(savedView.vacancySort)}`
-                        : slot.description}
-                    </p>
-                    <label className="saved-view-name-field">
-                      <span>View name</span>
-                      <input
-                        type="text"
-                        value={savedView?.customName ?? ''}
-                        onChange={(e) => renameSavedVacancyView(slot.id, e.target.value)}
-                        placeholder={slot.label}
-                        disabled={!savedView}
-                        maxLength={28}
-                      />
-                    </label>
-                    <label className="saved-view-default-toggle">
-                      <input
-                        type="checkbox"
-                        checked={defaultVacancyViewSlot === slot.id}
-                        onChange={(e) =>
-                          setDefaultVacancyViewSlot(e.target.checked ? slot.id : null)
-                        }
-                        disabled={!savedView}
-                      />
-                      <span>Open by default on load</span>
-                    </label>
-                  </div>
-                  <div className="saved-view-actions">
-                    <button
-                      type="button"
-                      className="stage-action-button"
-                      onClick={() => applySavedVacancyView(slot.id)}
-                      disabled={!savedView}
-                    >
-                      Open
-                    </button>
-                    <button
-                      type="button"
-                      className="stage-action-button primary"
-                      onClick={() => saveCurrentVacancyView(slot.id)}
-                    >
-                      Save current
-                    </button>
-                    <button
-                      type="button"
-                      className="stage-action-button"
-                      onClick={() => clearSavedVacancyView(slot.id)}
-                      disabled={!savedView}
-                    >
-                      Clear
-                    </button>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
+        <SavedViewsSection
+          savedVacancyViews={savedVacancyViews}
+          vacancyFilter={vacancyFilter}
+          vacancySort={vacancySort}
+          saveCurrentVacancyView={saveCurrentVacancyView}
+          applySavedVacancyView={applySavedVacancyView}
+          renameSavedVacancyView={renameSavedVacancyView}
+          clearSavedVacancyView={clearSavedVacancyView}
+          defaultVacancyViewSlot={defaultVacancyViewSlot}
+          setDefaultVacancyViewSlot={setDefaultVacancyViewSlot}
+        />
         <div className="timeline-filters vacancy-filters">
           {vacancyStatusFilterOptions.map((status) => (
             <button
