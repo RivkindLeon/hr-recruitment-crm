@@ -26,6 +26,11 @@ export default function App() {
           <span>{state.vacancyRecords.length} vacancies</span>
           <span>{state.candidateRecords.length} candidates</span>
           <span>{state.timelineRecords.length} timeline items</span>
+          {state.isApiConnected && (
+            <span className="api-badge">
+              <span className="api-dot" /> API connected
+            </span>
+          )}
         </div>
       </header>
 

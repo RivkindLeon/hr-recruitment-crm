@@ -10,6 +10,15 @@ import type {
   VacancyStatusFilter,
 } from '../types';
 import {
+  checkApiHealth,
+  fetchSnapshot,
+  createCandidate as apiCreateCandidate,
+  updateCandidate as apiUpdateCandidate,
+  createTimelineEntry as apiCreateTimelineEntry,
+  updateTimelineEntry as apiUpdateTimelineEntry,
+  updateVacancy as apiUpdateVacancy,
+} from '../api';
+import {
   stageOrder,
   TODAY,
   defaultCandidateForm,
@@ -109,6 +118,7 @@ export function useHrCrmState(
   const [candidateRecords, setCandidateRecords] = useState(initialCandidates);
   const [timelineRecords, setTimelineRecords] = useState(initialTimeline);
   const [selectedVacancyId, setSelectedVacancyId] = useState(initialVacancies[0]?.id ?? '');
+  const [isApiConnected, setIsApiConnected] = useState(false);
   const [candidateDraft, setCandidateDraft] = useState(defaultCandidateForm);
   const [vacancyFilter, setVacancyFilter] = useState<VacancyStatusFilter>('all');
   const [vacancySort, setVacancySort] = useState<VacancySortOption>(vacancySortOptions[0]);
@@ -246,6 +256,46 @@ export function useHrCrmState(
     }
   }, [savedVacancyViews, defaultVacancyViewSlot]);
 
+  // ── API bootstrap on mount ────────────────────────────────────────
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadFromApi() {
+      const healthy = await checkApiHealth();
+      if (!healthy || cancelled) return;
+
+      try {
+        const snapshot = await fetchSnapshot();
+        if (cancelled) return;
+
+        setVacancyRecords(snapshot.vacancies);
+        setCandidateRecords(snapshot.candidates);
+        setTimelineRecords(snapshot.timeline);
+        setIsApiConnected(true);
+
+        // Select first vacancy from API data
+        if (snapshot.vacancies.length > 0) {
+          const firstId = snapshot.vacancies[0].id;
+          setSelectedVacancyId(firstId);
+          const firstCandidates = snapshot.candidates.filter((c) => c.vacancyId === firstId);
+          if (firstCandidates.length > 0) {
+            setSelectedCandidateId(firstCandidates[0].id);
+            setSelectedStageDraft(firstCandidates[0].currentStage);
+            setCandidateEditDraft(getCandidateDraft(firstCandidates[0]));
+            setVacancyEditDraft(getVacancyDraft(snapshot.vacancies[0]));
+          }
+        }
+      } catch {
+        // API unavailable — stay on mock data
+      }
+    }
+
+    loadFromApi();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   // Apply default view on first mount if one is set and the view exists
   useEffect(() => {
     if (!defaultVacancyViewSlot) return;
@@ -294,13 +344,23 @@ export function useHrCrmState(
       return;
 
     const newCandidate = buildNewCandidate(candidateRecords, selectedVacancy.id, candidateDraft);
+    const candidateId = newCandidate.id;
     setCandidateRecords((cur) => [...cur, newCandidate]);
-    setSelectedCandidateId(newCandidate.id);
+    setSelectedCandidateId(candidateId);
     setSelectedStageDraft(newCandidate.currentStage);
     setIsEditingCandidate(false);
     setCandidateEditDraft(getCandidateDraft(newCandidate));
     setTimelineDraft(defaultTimelineForm);
     setCandidateDraft(defaultCandidateForm);
+
+    if (isApiConnected) {
+      apiCreateCandidate(newCandidate).catch(() => {
+        setCandidateRecords((cur) => cur.filter((c) => c.id !== candidateId));
+        if (selectedCandidateId === candidateId) {
+          setSelectedCandidateId('');
+        }
+      });
+    }
   }
 
   function handleCandidateEdit(e: React.FormEvent<HTMLFormElement>) {
@@ -312,8 +372,11 @@ export function useHrCrmState(
     )
       return;
 
+    const candidateId = selectedCandidate.id;
+    const previousRecord = candidateRecords.find((c) => c.id === candidateId);
+
     setCandidateRecords((cur) =>
-      updateCandidateRecord(cur, selectedCandidate.id, {
+      updateCandidateRecord(cur, candidateId, {
         source: candidateEditDraft.source,
         location: candidateEditDraft.location.trim(),
         score: Number(candidateEditDraft.score),
@@ -322,6 +385,18 @@ export function useHrCrmState(
       }),
     );
     setIsEditingCandidate(false);
+
+    if (isApiConnected && previousRecord) {
+      apiUpdateCandidate(candidateId, {
+        source: candidateEditDraft.source,
+        location: candidateEditDraft.location.trim(),
+        score: Number(candidateEditDraft.score),
+        nextInterview: candidateEditDraft.nextInterview.trim() || undefined,
+        summary: candidateEditDraft.summary.trim(),
+      }).catch(() => {
+        setCandidateRecords((cur) => cur.map((c) => (c.id === candidateId ? previousRecord : c)));
+      });
+    }
   }
 
   function handleVacancyEdit(e: React.FormEvent<HTMLFormElement>) {
@@ -334,8 +409,11 @@ export function useHrCrmState(
     )
       return;
 
+    const vacancyId = selectedVacancy.id;
+    const previousRecord = vacancyRecords.find((v) => v.id === vacancyId);
+
     setVacancyRecords((cur) =>
-      updateVacancyRecord(cur, selectedVacancy.id, {
+      updateVacancyRecord(cur, vacancyId, {
         title: vacancyEditDraft.title.trim(),
         team: vacancyEditDraft.team.trim(),
         owner: vacancyEditDraft.owner.trim(),
@@ -343,6 +421,17 @@ export function useHrCrmState(
       }),
     );
     setIsEditingVacancy(false);
+
+    if (isApiConnected && previousRecord) {
+      apiUpdateVacancy(vacancyId, {
+        title: vacancyEditDraft.title.trim(),
+        team: vacancyEditDraft.team.trim(),
+        owner: vacancyEditDraft.owner.trim(),
+        status: vacancyEditDraft.status,
+      }).catch(() => {
+        setVacancyRecords((cur) => cur.map((v) => (v.id === vacancyId ? previousRecord : v)));
+      });
+    }
   }
 
   function handleTimelineCreate(e: React.FormEvent<HTMLFormElement>) {
@@ -356,13 +445,27 @@ export function useHrCrmState(
       return;
 
     const entry = buildNewTimelineEntry(selectedCandidate.id, timelineDraft);
+    const entryId = entry.id;
+    const candidateId = selectedCandidate.id;
+
     setTimelineRecords((cur) => [entry, ...cur]);
     setCandidateRecords((cur) =>
-      updateCandidateRecord(cur, selectedCandidate.id, {
+      updateCandidateRecord(cur, candidateId, {
         lastActivityDate: entry.date,
       }),
     );
     setTimelineDraft(defaultTimelineForm);
+
+    if (isApiConnected) {
+      apiCreateTimelineEntry(entry).catch(() => {
+        setTimelineRecords((cur) => cur.filter((t) => t.id !== entryId));
+        setCandidateRecords((cur) =>
+          updateCandidateRecord(cur, candidateId, {
+            lastActivityDate: entry.date,
+          }),
+        );
+      });
+    }
   }
 
   function handleTimelineEdit(e: React.FormEvent<HTMLFormElement>) {
@@ -370,9 +473,12 @@ export function useHrCrmState(
     if (!editingTimelineId || !timelineEditDraft.title.trim() || !timelineEditDraft.detail.trim())
       return;
 
+    const timelineId = editingTimelineId;
+    const previousEntry = timelineRecords.find((t) => t.id === timelineId);
+
     setTimelineRecords((cur) =>
       cur.map((entry) =>
-        entry.id === editingTimelineId
+        entry.id === timelineId
           ? {
               ...entry,
               type: timelineEditDraft.type,
@@ -384,6 +490,17 @@ export function useHrCrmState(
       ),
     );
     setEditingTimelineId(null);
+
+    if (isApiConnected && previousEntry) {
+      apiUpdateTimelineEntry(timelineId, {
+        type: timelineEditDraft.type,
+        title: timelineEditDraft.title.trim(),
+        detail: timelineEditDraft.detail.trim(),
+        date: timelineEditDraft.date.trim(),
+      }).catch(() => {
+        setTimelineRecords((cur) => cur.map((t) => (t.id === timelineId ? previousEntry : t)));
+      });
+    }
   }
 
   function saveCurrentVacancyView(slotId: SavedVacancyViewSlotId) {
@@ -486,6 +603,7 @@ export function useHrCrmState(
     setIsEditingVacancy,
     setVacancyEditDraft,
     setCandidateDraft,
+    isApiConnected,
     setVacancyFilter,
     setVacancySort,
 
