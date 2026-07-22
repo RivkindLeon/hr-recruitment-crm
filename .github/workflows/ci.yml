@@ -34,3 +34,11 @@ jobs:
 
       - name: Build app
         run: npm run build
+
+      - name: Install server dependencies
+        run: npm ci
+        working-directory: server
+
+      - name: Validate server TypeScript compilation
+        run: npx tsc --noEmit
+        working-directory: server
