@@ -322,8 +322,19 @@ export function useHrCrmState(
   }
 
   function moveCandidateToStage(candidateId: string, nextStage: CandidateStage) {
+    const previousCandidate = candidateRecords.find((c) => c.id === candidateId);
+    if (!previousCandidate) return;
+
     setCandidateRecords((cur) => moveCandidateInList(cur, candidateId, nextStage));
     setSelectedStageDraft(nextStage);
+
+    if (isApiConnected && previousCandidate.currentStage !== nextStage) {
+      apiUpdateCandidate(candidateId, { currentStage: nextStage }).catch(() => {
+        setCandidateRecords((cur) =>
+          cur.map((c) => (c.id === candidateId ? previousCandidate : c)),
+        );
+      });
+    }
   }
 
   function moveSelectedCandidateBy(direction: -1 | 1) {
