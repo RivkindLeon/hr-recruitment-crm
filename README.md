@@ -11,7 +11,7 @@ A public project for exploring a CRM-like system for HR and recruitment teams to
 Recruitment processes often become scattered across spreadsheets, chat messages, ATS tools, and ad hoc notes, making coordination and visibility harder.
 
 ## Current status
-Early frontend prototype available, with a workflow foundation and a first app-shell implementation backed by mock recruitment data.
+Full-stack MVP complete. React + TypeScript + Vite frontend connected to an Express + SQLite backend via REST API (Drizzle ORM). All CRUD operations (vacancies, candidates, timeline) go through the API with graceful fallback to mock data when the backend is unreachable. Includes stage controls, saved views, candidate creation and editing, timeline entries, and optimistic optimistic mutation support.
 
 ## Local development
 
@@ -56,14 +56,16 @@ and falls back to mock data when the backend is unreachable.
 - `docs/workflow-foundation.md`
 - `docs/app-shell-milestone.md`
 
-## Implemented prototype slice
-- vacancy selection as the main entry point
-- stage-based candidate pipeline per vacancy
+## Implemented features
+- vacancy selection as the main entry point with status filtering and sorting
+- stage-based candidate pipeline per vacancy with visual stage columns
 - candidate detail panel with timeline-style activity
-- stage controls for step-by-step moves and direct stage reassignment
-- local candidate creation flow with starting stage, score, location, and optional scheduling note
-- mock data for vacancies, candidates, interviews, feedback, and communication history
-- **Express + SQLite backend** with Drizzle ORM, REST API for vacancies, candidates, and timeline entries
+- stage controls for step-by-step moves and direct stage reassignment with optimistic revert on API failure
+- candidate creation and editing with fields for stage, score, location, source, and summaries
+- timeline entries (create/update) for tracking candidate activity
+- saved view definitions for quick pipeline filtering
+- **Express + SQLite backend** with Drizzle ORM, full REST API for vacancies, candidates, and timeline entries
+- Frontend automatically loads data from backend on mount, falls back to mock data when offline
 
 ## Repository visibility
 This repository is public.
