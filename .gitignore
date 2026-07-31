@@ -9,3 +9,7 @@ coverage/
 .vscode/
 .idea/
 *.log
+
+# Backend (server)
+server/data/
+server/dist/
