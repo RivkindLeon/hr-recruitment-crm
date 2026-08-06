@@ -120,6 +120,7 @@ export function useHrCrmState(
   const [selectedVacancyId, setSelectedVacancyId] = useState(initialVacancies[0]?.id ?? '');
   const [isApiConnected, setIsApiConnected] = useState(false);
   const [candidateDraft, setCandidateDraft] = useState(defaultCandidateForm);
+  const [candidateSearch, setCandidateSearch] = useState('');
   const [vacancyFilter, setVacancyFilter] = useState<VacancyStatusFilter>('all');
   const [vacancySort, setVacancySort] = useState<VacancySortOption>(vacancySortOptions[0]);
   const [savedVacancyViews, setSavedVacancyViews] = useState<SavedVacancyViewMap>(() =>
@@ -152,10 +153,22 @@ export function useHrCrmState(
     return sortVacancies(statusFiltered, candidateRecords, vacancyAttentionSummaries, vacancySort);
   }, [candidateRecords, vacancyAttentionSummaries, vacancyFilter, vacancyRecords, vacancySort]);
 
-  const vacancyCandidates = useMemo(
-    () => getCandidatesForVacancy(candidateRecords, selectedVacancyId),
-    [candidateRecords, selectedVacancyId],
-  );
+  const vacancyCandidates = useMemo(() => {
+    let list = getCandidatesForVacancy(candidateRecords, selectedVacancyId);
+
+    if (candidateSearch.trim()) {
+      const query = candidateSearch.toLowerCase().trim();
+      list = list.filter(
+        (c) =>
+          c.name.toLowerCase().includes(query) ||
+          c.source.toLowerCase().includes(query) ||
+          c.location.toLowerCase().includes(query) ||
+          c.summary.toLowerCase().includes(query),
+      );
+    }
+
+    return list;
+  }, [candidateRecords, selectedVacancyId, candidateSearch]);
 
   const [selectedCandidateId, setSelectedCandidateId] = useState(vacancyCandidates[0]?.id ?? '');
   const [selectedStageDraft, setSelectedStageDraft] = useState<CandidateStage>(
@@ -600,6 +613,7 @@ export function useHrCrmState(
     filteredQueueMetrics,
     vacancyStageSnapshots,
     vacancyAttentionSummaries,
+    candidateSearch,
     savedVacancyViews,
     defaultVacancyViewSlot,
 
@@ -616,6 +630,7 @@ export function useHrCrmState(
     setCandidateDraft,
     isApiConnected,
     setVacancyFilter,
+    setCandidateSearch,
     setVacancySort,
 
     handleVacancySelect,

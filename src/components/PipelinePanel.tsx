@@ -4,6 +4,8 @@ import { stageOrder } from '../constants';
 interface PipelinePanelProps {
   selectedVacancy: Vacancy | undefined;
   vacancyCandidates: Candidate[];
+  candidateSearch: string;
+  setCandidateSearch: React.Dispatch<React.SetStateAction<string>>;
   stageBuckets: Map<CandidateStage, Candidate[]>;
   selectedCandidateId: string;
   setSelectedCandidateId: (id: string) => void;
@@ -27,6 +29,8 @@ interface PipelinePanelProps {
 export function PipelinePanel({
   selectedVacancy,
   vacancyCandidates,
+  candidateSearch,
+  setCandidateSearch,
   stageBuckets,
   selectedCandidateId,
   setSelectedCandidateId,
@@ -57,6 +61,29 @@ export function PipelinePanel({
             </div>
             <span>{vacancyCandidates.length} active candidate records</span>
           </div>
+
+          {vacancyCandidates.length > 0 && (
+            <div className="pipeline-search">
+              <input
+                type="search"
+                placeholder="Search candidates…"
+                value={candidateSearch}
+                onChange={(e) => setCandidateSearch(e.target.value)}
+                aria-label="Search candidates"
+                className="pipeline-search-input"
+              />
+              {candidateSearch.trim() && (
+                <button
+                  type="button"
+                  onClick={() => setCandidateSearch('')}
+                  aria-label="Clear search"
+                  className="pipeline-search-clear"
+                >
+                  ✕
+                </button>
+              )}
+            </div>
+          )}
 
           <div className="pipeline-columns">
             {stageOrder.map((stage) => {

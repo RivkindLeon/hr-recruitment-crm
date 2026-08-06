@@ -65,6 +65,8 @@ export default function App() {
         <PipelinePanel
           selectedVacancy={state.selectedVacancy}
           vacancyCandidates={state.vacancyCandidates}
+          candidateSearch={state.candidateSearch}
+          setCandidateSearch={state.setCandidateSearch}
           stageBuckets={state.stageBuckets}
           selectedCandidateId={state.selectedCandidateId}
           setSelectedCandidateId={state.setSelectedCandidateId}
