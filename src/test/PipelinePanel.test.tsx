@@ -42,6 +42,8 @@ function renderComponent(overrides: Partial<Parameters<typeof PipelinePanel>[0]>
   const props = {
     selectedVacancy: baseVacancy,
     vacancyCandidates: vac1Candidates,
+    candidateSearch: '',
+    setCandidateSearch: vi.fn(),
     stageBuckets: vac1StageBuckets,
     selectedCandidateId: 'cand-1',
     setSelectedCandidateId: vi.fn(),
@@ -249,6 +251,47 @@ describe('PipelinePanel', () => {
       const finalColumn = stageColumns[4];
       expect(finalColumn.textContent).toContain('Gal Peled');
       expect(finalColumn.textContent).toContain('Final Interview');
+    });
+  });
+
+  describe('candidate search', () => {
+    it('renders search input when candidates exist', () => {
+      const { container } = renderComponent();
+      const searchInput = container.querySelector('.pipeline-search-input');
+      expect(searchInput).toBeTruthy();
+    });
+
+    it('does not render search when no candidates', () => {
+      const emptyBuckets = buildStageBuckets('vac-999'); // no matches
+      const { container } = renderComponent({
+        vacancyCandidates: [],
+        stageBuckets: emptyBuckets,
+      });
+      const searchInput = container.querySelector('.pipeline-search-input');
+      expect(searchInput).toBeFalsy();
+    });
+
+    it('renders input with correct placeholder and aria-label', () => {
+      const { container } = renderComponent();
+      const searchInput = container.querySelector<HTMLInputElement>('.pipeline-search-input')!;
+      expect(searchInput?.placeholder).toContain('Search');
+      expect(searchInput?.getAttribute('aria-label')).toBe('Search candidates');
+      expect(searchInput?.type).toBe('search');
+    });
+
+    it('shows clear button when candidateSearch has content via props', async () => {
+      const setCandidateSearch = vi.fn();
+      const { container } = renderComponent({
+        setCandidateSearch,
+        candidateSearch: 'filtered',
+      });
+      const clearBtn = container.querySelector('.pipeline-search-clear');
+      expect(clearBtn).toBeTruthy();
+      if (clearBtn) {
+        const user = userEvent.setup();
+        await user.click(clearBtn);
+        expect(setCandidateSearch).toHaveBeenCalledWith('');
+      }
     });
   });
 });
