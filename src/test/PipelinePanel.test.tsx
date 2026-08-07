@@ -273,9 +273,7 @@ describe('PipelinePanel', () => {
 
     it('renders input with correct placeholder and aria-label', () => {
       const { container } = renderComponent();
-      const searchInput = container.querySelector<HTMLInputElement>(
-        '.pipeline-search-input',
-      )!;
+      const searchInput = container.querySelector<HTMLInputElement>('.pipeline-search-input')!;
       expect(searchInput?.placeholder).toContain('Search');
       expect(searchInput?.getAttribute('aria-label')).toBe('Search candidates');
       expect(searchInput?.type).toBe('search');
