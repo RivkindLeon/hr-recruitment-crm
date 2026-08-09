@@ -1,4 +1,5 @@
 import type {
+  CandidateFormDraft,
   CandidateStage,
   SavedVacancyView,
   SavedVacancyViewSlotId,
@@ -34,26 +35,8 @@ interface VacancyListPanelProps {
   clearSavedVacancyView: (slotId: SavedVacancyViewSlotId) => void;
   defaultVacancyViewSlot: SavedVacancyViewSlotId | null;
   setDefaultVacancyViewSlot: (slot: SavedVacancyViewSlotId | null) => void;
-  candidateDraft: {
-    name: string;
-    source: string;
-    stage: CandidateStage;
-    location: string;
-    score: string;
-    nextInterview: string;
-    summary: string;
-  };
-  setCandidateDraft: React.Dispatch<
-    React.SetStateAction<{
-      name: string;
-      source: string;
-      stage: CandidateStage;
-      location: string;
-      score: string;
-      nextInterview: string;
-      summary: string;
-    }>
-  >;
+  candidateDraft: CandidateFormDraft;
+  setCandidateDraft: React.Dispatch<React.SetStateAction<CandidateFormDraft>>;
   sourceOptions: string[];
   handleCandidateCreate: (e: React.FormEvent<HTMLFormElement>) => void;
 }

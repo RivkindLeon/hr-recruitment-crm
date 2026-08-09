@@ -1,27 +1,9 @@
-import type { CandidateStage } from '../types';
+import type { CandidateFormDraft } from '../types';
 import { stageOrder } from '../constants';
 
 interface CandidateCreateFormProps {
-  candidateDraft: {
-    name: string;
-    source: string;
-    stage: CandidateStage;
-    location: string;
-    score: string;
-    nextInterview: string;
-    summary: string;
-  };
-  setCandidateDraft: React.Dispatch<
-    React.SetStateAction<{
-      name: string;
-      source: string;
-      stage: CandidateStage;
-      location: string;
-      score: string;
-      nextInterview: string;
-      summary: string;
-    }>
-  >;
+  candidateDraft: CandidateFormDraft;
+  setCandidateDraft: React.Dispatch<React.SetStateAction<CandidateFormDraft>>;
   sourceOptions: string[];
   handleCandidateCreate: (e: React.FormEvent<HTMLFormElement>) => void;
 }

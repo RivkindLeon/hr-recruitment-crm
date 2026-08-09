@@ -1,24 +1,12 @@
 import { type FormEvent } from 'react';
-import type { Vacancy, VacancyStatus } from '../types';
+import type { Vacancy, VacancyEditDraft, VacancyStatus } from '../types';
 
 interface VacancyEditSectionProps {
   selectedVacancy: Vacancy;
   isEditingVacancy: boolean;
   setIsEditingVacancy: (editing: boolean) => void;
-  vacancyEditDraft: {
-    title: string;
-    team: string;
-    owner: string;
-    status: VacancyStatus;
-  };
-  setVacancyEditDraft: React.Dispatch<
-    React.SetStateAction<{
-      title: string;
-      team: string;
-      owner: string;
-      status: VacancyStatus;
-    }>
-  >;
+  vacancyEditDraft: VacancyEditDraft;
+  setVacancyEditDraft: React.Dispatch<React.SetStateAction<VacancyEditDraft>>;
   vacancyCandidatesCount: number;
   handleVacancyEdit: (e: FormEvent<HTMLFormElement>) => void;
 }

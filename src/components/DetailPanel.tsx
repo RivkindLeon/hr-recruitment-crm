@@ -1,9 +1,12 @@
 import type {
   Candidate,
+  CandidateEditDraft,
   CandidateStage,
   TimelineEntry,
   TimelineEntryType,
+  TimelineFormDraft,
   Vacancy,
+  VacancyEditDraft,
 } from '../types';
 import { StageControls } from './StageControls';
 import { VacancyEditSection } from './VacancyEditSection';
@@ -23,40 +26,14 @@ interface DetailPanelProps {
   // Vacancy edit
   isEditingVacancy: boolean;
   setIsEditingVacancy: (editing: boolean) => void;
-  vacancyEditDraft: {
-    title: string;
-    team: string;
-    owner: string;
-    status: 'Active' | 'Paused' | 'Closing Soon';
-  };
-  setVacancyEditDraft: React.Dispatch<
-    React.SetStateAction<{
-      title: string;
-      team: string;
-      owner: string;
-      status: 'Active' | 'Paused' | 'Closing Soon';
-    }>
-  >;
+  vacancyEditDraft: VacancyEditDraft;
+  setVacancyEditDraft: React.Dispatch<React.SetStateAction<VacancyEditDraft>>;
   handleVacancyEdit: (e: React.FormEvent<HTMLFormElement>) => void;
   // Candidate edit
   isEditingCandidate: boolean;
   setIsEditingCandidate: (editing: boolean) => void;
-  candidateEditDraft: {
-    source: string;
-    location: string;
-    score: string;
-    nextInterview: string;
-    summary: string;
-  };
-  setCandidateEditDraft: React.Dispatch<
-    React.SetStateAction<{
-      source: string;
-      location: string;
-      score: string;
-      nextInterview: string;
-      summary: string;
-    }>
-  >;
+  candidateEditDraft: CandidateEditDraft;
+  setCandidateEditDraft: React.Dispatch<React.SetStateAction<CandidateEditDraft>>;
   sourceOptions: string[];
   handleCandidateEdit: (e: React.FormEvent<HTMLFormElement>) => void;
   // Timeline
@@ -65,34 +42,10 @@ interface DetailPanelProps {
   setTimelineFilter: (f: 'all' | TimelineEntryType) => void;
   editingTimelineId: string | null;
   setEditingTimelineId: (id: string | null) => void;
-  timelineDraft: {
-    type: TimelineEntryType;
-    title: string;
-    detail: string;
-    date: string;
-  };
-  setTimelineDraft: React.Dispatch<
-    React.SetStateAction<{
-      type: TimelineEntryType;
-      title: string;
-      detail: string;
-      date: string;
-    }>
-  >;
-  timelineEditDraft: {
-    type: TimelineEntryType;
-    title: string;
-    detail: string;
-    date: string;
-  };
-  setTimelineEditDraft: React.Dispatch<
-    React.SetStateAction<{
-      type: TimelineEntryType;
-      title: string;
-      detail: string;
-      date: string;
-    }>
-  >;
+  timelineDraft: TimelineFormDraft;
+  setTimelineDraft: React.Dispatch<React.SetStateAction<TimelineFormDraft>>;
+  timelineEditDraft: TimelineFormDraft;
+  setTimelineEditDraft: React.Dispatch<React.SetStateAction<TimelineFormDraft>>;
   handleTimelineCreate: (e: React.FormEvent<HTMLFormElement>) => void;
   handleTimelineEdit: (e: React.FormEvent<HTMLFormElement>) => void;
 }
