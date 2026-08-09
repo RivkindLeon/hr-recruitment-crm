@@ -1,6 +1,7 @@
 import { type FormEvent } from 'react';
 import type { TimelineEntry, TimelineEntryType, TimelineFormDraft } from '../types';
 import { timelineEntryTypes } from '../constants';
+import { TimelineFormFields } from './TimelineFormFields';
 
 interface TimelineSectionProps {
   selectedTimeline: TimelineEntry[];
@@ -60,55 +61,7 @@ export function TimelineSection({
 
       {!editingTimelineId && (
         <form className="timeline-create-card" onSubmit={handleTimelineCreate}>
-          <div className="form-field-row">
-            <label className="form-field">
-              <span>Type</span>
-              <select
-                value={timelineDraft.type}
-                onChange={(e) =>
-                  setTimelineDraft((d) => ({
-                    ...d,
-                    type: e.target.value as TimelineEntryType,
-                  }))
-                }
-              >
-                <option value="feedback">Feedback</option>
-                <option value="interview">Interview</option>
-                <option value="communication">Communication</option>
-              </select>
-            </label>
-
-            <label className="form-field">
-              <span>Date</span>
-              <input
-                value={timelineDraft.date}
-                onChange={(e) => setTimelineDraft((d) => ({ ...d, date: e.target.value }))}
-                required
-              />
-            </label>
-          </div>
-
-          <label className="form-field">
-            <span>Title</span>
-            <input
-              value={timelineDraft.title}
-              onChange={(e) => setTimelineDraft((d) => ({ ...d, title: e.target.value }))}
-              placeholder="Manager debrief added"
-              required
-            />
-          </label>
-
-          <label className="form-field">
-            <span>Detail</span>
-            <textarea
-              value={timelineDraft.detail}
-              onChange={(e) => setTimelineDraft((d) => ({ ...d, detail: e.target.value }))}
-              rows={3}
-              placeholder="Capture the key takeaway"
-              required
-            />
-          </label>
-
+          <TimelineFormFields draft={timelineDraft} setDraft={setTimelineDraft} />
           <button type="submit" className="stage-action-button primary">
             Add timeline note
           </button>
@@ -123,68 +76,7 @@ export function TimelineSection({
             <article key={entry.id} className="timeline-item">
               {editingTimelineId === entry.id ? (
                 <form className="timeline-edit-form" onSubmit={handleTimelineEdit}>
-                  <div className="form-field-row">
-                    <label className="form-field">
-                      <span>Type</span>
-                      <select
-                        value={timelineEditDraft.type}
-                        onChange={(e) =>
-                          setTimelineEditDraft((d) => ({
-                            ...d,
-                            type: e.target.value as TimelineEntryType,
-                          }))
-                        }
-                      >
-                        <option value="feedback">Feedback</option>
-                        <option value="interview">Interview</option>
-                        <option value="communication">Communication</option>
-                      </select>
-                    </label>
-
-                    <label className="form-field">
-                      <span>Date</span>
-                      <input
-                        value={timelineEditDraft.date}
-                        onChange={(e) =>
-                          setTimelineEditDraft((d) => ({
-                            ...d,
-                            date: e.target.value,
-                          }))
-                        }
-                        required
-                      />
-                    </label>
-                  </div>
-
-                  <label className="form-field">
-                    <span>Title</span>
-                    <input
-                      value={timelineEditDraft.title}
-                      onChange={(e) =>
-                        setTimelineEditDraft((d) => ({
-                          ...d,
-                          title: e.target.value,
-                        }))
-                      }
-                      required
-                    />
-                  </label>
-
-                  <label className="form-field">
-                    <span>Detail</span>
-                    <textarea
-                      value={timelineEditDraft.detail}
-                      onChange={(e) =>
-                        setTimelineEditDraft((d) => ({
-                          ...d,
-                          detail: e.target.value,
-                        }))
-                      }
-                      rows={3}
-                      required
-                    />
-                  </label>
-
+                  <TimelineFormFields draft={timelineEditDraft} setDraft={setTimelineEditDraft} />
                   <div className="form-field-row">
                     <button type="submit" className="stage-action-button primary">
                       Save

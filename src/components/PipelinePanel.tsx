@@ -1,4 +1,10 @@
-import type { Candidate, CandidateStage, CandidateEditDraft, TimelineFormDraft, Vacancy } from '../types';
+import type {
+  Candidate,
+  CandidateStage,
+  CandidateEditDraft,
+  TimelineFormDraft,
+  Vacancy,
+} from '../types';
 import { stageOrder } from '../constants';
 
 interface PipelinePanelProps {
