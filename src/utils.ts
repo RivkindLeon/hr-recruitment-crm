@@ -1,9 +1,11 @@
 import type {
   Candidate,
+  CandidateEditDraft,
   CandidateStage,
   TimelineEntry,
   Vacancy,
   VacancyAttentionSummary,
+  VacancyEditDraft,
   VacancyQueueMetric,
   VacancySortOption,
   VacancyStatus,
@@ -28,7 +30,7 @@ export function getStageCounts(candidates: Candidate[]): Record<CandidateStage, 
   );
 }
 
-export function getCandidateDraft(candidate: Candidate | undefined) {
+export function getCandidateDraft(candidate: Candidate | undefined): CandidateEditDraft {
   return {
     source: candidate?.source ?? 'LinkedIn',
     location: candidate?.location ?? '',
@@ -38,12 +40,7 @@ export function getCandidateDraft(candidate: Candidate | undefined) {
   };
 }
 
-export function getVacancyDraft(vacancy: Vacancy | undefined): {
-  title: string;
-  team: string;
-  owner: string;
-  status: VacancyStatus;
-} {
+export function getVacancyDraft(vacancy: Vacancy | undefined): VacancyEditDraft {
   return {
     title: vacancy?.title ?? '',
     team: vacancy?.team ?? '',

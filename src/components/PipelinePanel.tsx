@@ -1,4 +1,4 @@
-import type { Candidate, CandidateStage, Vacancy } from '../types';
+import type { Candidate, CandidateStage, CandidateEditDraft, TimelineFormDraft, Vacancy } from '../types';
 import { stageOrder } from '../constants';
 
 interface PipelinePanelProps {
@@ -11,19 +11,8 @@ interface PipelinePanelProps {
   setSelectedCandidateId: (id: string) => void;
   setSelectedStageDraft: (stage: CandidateStage) => void;
   setIsEditingCandidate: (editing: boolean) => void;
-  setCandidateEditDraft: (draft: {
-    source: string;
-    location: string;
-    score: string;
-    nextInterview: string;
-    summary: string;
-  }) => void;
-  setTimelineDraft: (draft: {
-    type: 'feedback' | 'interview' | 'communication';
-    title: string;
-    detail: string;
-    date: string;
-  }) => void;
+  setCandidateEditDraft: (draft: CandidateEditDraft) => void;
+  setTimelineDraft: (draft: TimelineFormDraft) => void;
 }
 
 export function PipelinePanel({

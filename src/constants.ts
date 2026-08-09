@@ -1,7 +1,9 @@
 import type {
+  CandidateFormDraft,
   CandidateStage,
   SavedVacancyViewSlotId,
   TimelineEntryType,
+  TimelineFormDraft,
   VacancySortOption,
   VacancyStatus,
   VacancyStatusFilter,
@@ -60,7 +62,7 @@ export const defaultVacancyViewSlotKey = 'hr-recruitment-crm:default-vacancy-vie
 
 export const timelineEntryTypes: TimelineEntryType[] = ['feedback', 'interview', 'communication'];
 
-export const defaultCandidateForm = {
+export const defaultCandidateForm: CandidateFormDraft = {
   name: '',
   source: 'LinkedIn',
   location: '',
@@ -70,7 +72,7 @@ export const defaultCandidateForm = {
   summary: '',
 };
 
-export const defaultTimelineForm = {
+export const defaultTimelineForm: TimelineFormDraft = {
   type: 'feedback' as TimelineEntryType,
   title: '',
   detail: '',

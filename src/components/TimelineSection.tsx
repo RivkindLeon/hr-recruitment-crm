@@ -1,5 +1,5 @@
 import { type FormEvent } from 'react';
-import type { TimelineEntry, TimelineEntryType } from '../types';
+import type { TimelineEntry, TimelineEntryType, TimelineFormDraft } from '../types';
 import { timelineEntryTypes } from '../constants';
 
 interface TimelineSectionProps {
@@ -8,34 +8,10 @@ interface TimelineSectionProps {
   setTimelineFilter: (f: 'all' | TimelineEntryType) => void;
   editingTimelineId: string | null;
   setEditingTimelineId: (id: string | null) => void;
-  timelineDraft: {
-    type: TimelineEntryType;
-    title: string;
-    detail: string;
-    date: string;
-  };
-  setTimelineDraft: React.Dispatch<
-    React.SetStateAction<{
-      type: TimelineEntryType;
-      title: string;
-      detail: string;
-      date: string;
-    }>
-  >;
-  timelineEditDraft: {
-    type: TimelineEntryType;
-    title: string;
-    detail: string;
-    date: string;
-  };
-  setTimelineEditDraft: React.Dispatch<
-    React.SetStateAction<{
-      type: TimelineEntryType;
-      title: string;
-      detail: string;
-      date: string;
-    }>
-  >;
+  timelineDraft: TimelineFormDraft;
+  setTimelineDraft: React.Dispatch<React.SetStateAction<TimelineFormDraft>>;
+  timelineEditDraft: TimelineFormDraft;
+  setTimelineEditDraft: React.Dispatch<React.SetStateAction<TimelineFormDraft>>;
   handleTimelineCreate: (e: FormEvent<HTMLFormElement>) => void;
   handleTimelineEdit: (e: FormEvent<HTMLFormElement>) => void;
 }

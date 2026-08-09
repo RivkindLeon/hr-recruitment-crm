@@ -1,27 +1,13 @@
 import { type FormEvent, type Dispatch, type SetStateAction } from 'react';
-import type { Candidate } from '../types';
+import type { Candidate, CandidateEditDraft } from '../types';
 
 interface CandidateEditSectionProps {
   selectedCandidate: Candidate;
   selectedVacancyTitle: string;
   isEditingCandidate: boolean;
   setIsEditingCandidate: (editing: boolean) => void;
-  candidateEditDraft: {
-    source: string;
-    location: string;
-    score: string;
-    nextInterview: string;
-    summary: string;
-  };
-  setCandidateEditDraft: Dispatch<
-    SetStateAction<{
-      source: string;
-      location: string;
-      score: string;
-      nextInterview: string;
-      summary: string;
-    }>
-  >;
+  candidateEditDraft: CandidateEditDraft;
+  setCandidateEditDraft: Dispatch<SetStateAction<CandidateEditDraft>>;
   sourceOptions: string[];
   handleCandidateEdit: (e: FormEvent<HTMLFormElement>) => void;
 }

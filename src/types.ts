@@ -72,3 +72,37 @@ export interface TimelineEntry {
   date: string;
   detail: string;
 }
+
+// ── Form draft shapes (shared between state hook and components) ──────────────
+
+export interface CandidateFormDraft {
+  name: string;
+  source: string;
+  stage: CandidateStage;
+  location: string;
+  score: string;
+  nextInterview: string;
+  summary: string;
+}
+
+export interface CandidateEditDraft {
+  source: string;
+  location: string;
+  score: string;
+  nextInterview: string;
+  summary: string;
+}
+
+export interface TimelineFormDraft {
+  type: TimelineEntryType;
+  title: string;
+  detail: string;
+  date: string;
+}
+
+export interface VacancyEditDraft {
+  title: string;
+  team: string;
+  owner: string;
+  status: VacancyStatus;
+}

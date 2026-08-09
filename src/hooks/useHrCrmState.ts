@@ -1,11 +1,15 @@
 import { useMemo, useState, useEffect } from 'react';
 import type {
   Candidate,
+  CandidateEditDraft,
+  CandidateFormDraft,
   CandidateStage,
   SavedVacancyView,
   SavedVacancyViewSlotId,
   TimelineEntry,
+  TimelineFormDraft,
   Vacancy,
+  VacancyEditDraft,
   VacancySortOption,
   VacancyStatusFilter,
 } from '../types';
