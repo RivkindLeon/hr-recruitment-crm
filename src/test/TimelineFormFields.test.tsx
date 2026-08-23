@@ -120,7 +120,9 @@ describe('TimelineFormFields', () => {
     render(<TimelineFormFields draft={baseDraft} setDraft={setDraft} />);
 
     const textarea = screen.getByPlaceholderText('Capture the key takeaway') as HTMLTextAreaElement;
-    fireEvent.change(textarea, { target: { value: 'Candidate showed strong problem-solving skills.' } });
+    fireEvent.change(textarea, {
+      target: { value: 'Candidate showed strong problem-solving skills.' },
+    });
 
     expect(setDraft).toHaveBeenCalledOnce();
     const updater = setDraft.mock.calls[0][0] as Function;

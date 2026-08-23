@@ -1,9 +1,4 @@
-import type {
-  Candidate,
-  CandidateStage,
-  CandidateEditDraft,
-  TimelineFormDraft,
-} from '../types';
+import type { Candidate, CandidateStage, CandidateEditDraft, TimelineFormDraft } from '../types';
 
 interface PipelineStageColumnProps {
   stage: CandidateStage;
